@@ -1,10 +1,10 @@
-buildall: server cli_exec
+buildall: server client
 
 server: 
-	GOPROXY=https://goproxy.cn go build -o server  cmd/main.go 
+	GOPROXY=https://goproxy.cn go build -o server  cmd/server/server.go 
 
-cli_exec: 
-	GOPROXY=https://goproxy.cn go build -o exec cmd/exec/exec.go 
+client: 
+	GOPROXY=https://goproxy.cn go build -o cli cmd/cli/cli.go 
 
 run: 
 	./server
