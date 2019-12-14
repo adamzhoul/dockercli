@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-func runHttpServer(stop chan os.Signal) {
+func RunHttpServer(stop chan os.Signal) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", hellowWorld)
 	mux.HandleFunc("/ws", handleWs)
