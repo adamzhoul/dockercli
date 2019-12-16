@@ -1,10 +1,15 @@
 package proxy
 
 import (
+	"fmt"
 	"log"
 	"net/http"
+	"net/url"
+	"os"
 
 	"github.com/adamzhoul/dockercli/pkg/kubernetes"
+	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/remotecommand"
 )
 
 // handle websocket connection
@@ -35,15 +40,21 @@ func handleAttach(w http.ResponseWriter, req *http.Request) {
 	log.Println("connect to agetn :", ip)
 
 	// 4. connect use spdy protocol, link websocket conn and spdy conn
-	// exec, err := remotecommand.NewSPDYExecutor(config, method, url)
-	// if err != nil {
-	// 	return
-	// }
-	// return exec.Stream(remotecommand.StreamOptions{
-	// 	Stdin:             stdin,
-	// 	Stdout:            stdout,
-	// 	Stderr:            stderr,
-	// 	Tty:               tty,
-	// 	TerminalSizeQueue: terminalSizeQueue,
-	// })
+	uri, err := url.Parse(fmt.Sprintf("http://%s:%d", ip, 80))
+	if err != nil {
+		return
+	}
+	uri.Path = fmt.Sprintf("/api/v1/debug")
+	config := rest.Config{Host: fmt.Sprintf("http://%s:%d", ip, 80)}
+	exec, err := remotecommand.NewSPDYExecutor(&config, "POST", uri)
+	if err != nil {
+		return
+	}
+	exec.Stream(remotecommand.StreamOptions{
+		Stdin:  os.Stdin,
+		Stdout: os.Stdout,
+		Stderr: os.Stderr,
+		Tty:    true,
+		//TerminalSizeQueue: terminalSizeQueue,
+	})
 }
