@@ -60,6 +60,10 @@ func (s *HTTPProxyServer) Shutdown() {
 	}
 }
 
+func Err(w http.ResponseWriter, err string) {
+	w.Write([]byte(err))
+}
+
 func proxyRoute() *http.ServeMux {
 
 	mux := http.NewServeMux()
