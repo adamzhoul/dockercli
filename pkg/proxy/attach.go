@@ -12,6 +12,7 @@ import (
 // connect to agent which on the same node
 func handleAttach(w http.ResponseWriter, req *http.Request) {
 
+	// 1. upgrade protocol to websocket
 	podsName := req.PostForm["podsName"]
 
 	if len(podsName) != 1 {
@@ -19,13 +20,13 @@ func handleAttach(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	// 1. find container node
+	// 2. find container node
 	pods := kubernetes.FindPodsByName("", podsName)
 	if len(pods) != 1 {
 		return
 	}
 
-	// 2. get agent ip , connect use spdy protocol
+	// 3. get agent ip
 	agent := kubernetes.FindPodsByLabel("", "")
 	if len(agent) != 1 {
 
@@ -33,6 +34,16 @@ func handleAttach(w http.ResponseWriter, req *http.Request) {
 	ip := agent[0].Status.PodIP
 	log.Println("connect to agetn :", ip)
 
-	// 3. link websocket conn and spdy conn
-
+	// 4. connect use spdy protocol, link websocket conn and spdy conn
+	// exec, err := remotecommand.NewSPDYExecutor(config, method, url)
+	// if err != nil {
+	// 	return
+	// }
+	// return exec.Stream(remotecommand.StreamOptions{
+	// 	Stdin:             stdin,
+	// 	Stdout:            stdout,
+	// 	Stderr:            stderr,
+	// 	Tty:               tty,
+	// 	TerminalSizeQueue: terminalSizeQueue,
+	// })
 }

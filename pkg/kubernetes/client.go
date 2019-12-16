@@ -1,9 +1,10 @@
 package kubernetes
 
 import (
+	"log"
+
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
-	"log"
 )
 
 var k8sClient *kubernetes.Clientset
