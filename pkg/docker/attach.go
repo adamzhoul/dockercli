@@ -50,14 +50,14 @@ func (a *ContainerAttacher) AttachContainer(name string, uid kubetype.UID, conta
 		ErrorStream:  os.Stderr,
 		RawTerminal:  true,
 	}
-	er = holdHijackedConnection(sopts.RawTerminal, sopts.InputStream, sopts.OutputStream, sopts.ErrorStream, resp)
+	er = a.holdHijackedConnection(sopts.RawTerminal, sopts.InputStream, sopts.OutputStream, sopts.ErrorStream, resp)
 	if er != nil {
 		fmt.Println(er)
 	}
 	return nil
 }
 
-func holdHijackedConnection(tty bool, inputStream io.Reader, outputStream, errorStream io.Writer, resp types.HijackedResponse) error {
+func (a *ContainerAttacher) holdHijackedConnection(tty bool, inputStream io.Reader, outputStream, errorStream io.Writer, resp types.HijackedResponse) error {
 	receiveStdout := make(chan error)
 	if outputStream != nil || errorStream != nil {
 		go func() {
