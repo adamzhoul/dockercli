@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/adamzhoul/dockercli/pkg/kubernetes"
+	"github.com/adamzhoul/dockercli/pkg/webterminal"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/remotecommand"
 )
@@ -16,6 +17,7 @@ import (
 // find container node
 // connect to agent which on the same node
 func handleAttach(w http.ResponseWriter, req *http.Request) {
+	pty, err := webterminal.NewTerminalSession(w, req, nil)
 
 	// 1. upgrade protocol to websocket
 	podsName := req.PostForm["podsName"]
@@ -51,9 +53,9 @@ func handleAttach(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	exec.Stream(remotecommand.StreamOptions{
-		Stdin:  os.Stdin,
-		Stdout: os.Stdout,
-		Stderr: os.Stderr,
+		Stdin:  pty,
+		Stdout: pty,
+		Stderr: pty,
 		Tty:    true,
 		//TerminalSizeQueue: terminalSizeQueue,
 	})
