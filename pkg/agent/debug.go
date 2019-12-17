@@ -32,7 +32,7 @@ func handleDebug(w http.ResponseWriter, req *http.Request) {
 		GetAttacher(),
 		"",
 		"",
-		"f3025c9dd95b",
+		"421b18184b60",
 		streamOpts,
 		10*time.Minute,
 		15*time.Second,

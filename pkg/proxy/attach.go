@@ -58,12 +58,13 @@ func handleAttach(w http.ResponseWriter, req *http.Request) {
 		log.Println(err)
 		return
 	}
+
 	exec.Stream(remotecommand.StreamOptions{
-		Stdin:  pty,
-		Stdout: pty,
-		Stderr: pty,
-		Tty:    true,
-		//TerminalSizeQueue: terminalSizeQueue,
+		Stdin:             pty,
+		Stdout:            pty,
+		Stderr:            pty,
+		Tty:               true,
+		TerminalSizeQueue: pty,
 	})
 }
 

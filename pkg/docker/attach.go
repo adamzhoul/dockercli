@@ -5,6 +5,7 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"time"
 
 	"github.com/docker/docker/api/types"
 	dockerclient "github.com/docker/docker/client"
@@ -25,8 +26,24 @@ func NewContainerAttacher() *ContainerAttacher {
 	}
 }
 
+// attach to container
+// 1. handle size
+// 2. attach
+// 3. hold conn
 func (a *ContainerAttacher) AttachContainer(name string, uid kubetype.UID, container string, in io.Reader, out, err io.WriteCloser, tty bool, resize <-chan remotecommand.TerminalSize) error {
 
+	// handle size
+	HandleResizing(resize, func(size remotecommand.TerminalSize) {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		a.client.ContainerResize(ctx, container, types.ResizeOptions{
+			Height: uint(size.Height),
+			Width:  uint(size.Width),
+		})
+
+	})
+
+	// attach to container
 	opts := types.ContainerAttachOptions{
 		Stream: true,
 		Stdin:  true,
@@ -100,4 +117,21 @@ func redirectResponseToOutputStream(tty bool, outputStream, errorStream io.Write
 		log.Println(num, err) // 0 Unrecognized input header: 67
 	}
 	return err
+}
+
+func HandleResizing(resize <-chan remotecommand.TerminalSize, resizeFunc func(size remotecommand.TerminalSize)) {
+	if resize == nil {
+		return
+	}
+
+	go func() {
+		//defer runtime.HandleCrash()
+
+		for size := range resize {
+			if size.Height < 1 || size.Width < 1 {
+				continue
+			}
+			resizeFunc(size)
+		}
+	}()
 }
