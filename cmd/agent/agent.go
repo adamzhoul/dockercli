@@ -5,6 +5,7 @@ import (
 	"os/signal"
 
 	"github.com/adamzhoul/dockercli/pkg/agent"
+	"github.com/adamzhoul/dockercli/pkg/docker"
 )
 
 func main() {
@@ -15,6 +16,7 @@ func main() {
 	config := agent.HTTPConfig{
 		ListenAddress: "0.0.0.0:8090",
 	}
+	docker.InitDockerclientConn()
 
 	// start an HttpServer
 	agentServer := agent.NewHTTPAgentServer(&config)

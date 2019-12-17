@@ -18,7 +18,7 @@ func main() {
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt)
 
-	initConfig()
+	//initConfig()
 
 	config := proxy.HTTPConfig{
 		ListenAddress: "0.0.0.0:8089",

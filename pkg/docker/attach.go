@@ -6,7 +6,6 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
-	"os"
 
 	"github.com/docker/docker/api/types"
 	dockerclient "github.com/docker/docker/client"
@@ -45,14 +44,15 @@ func (a *ContainerAttacher) AttachContainer(name string, uid kubetype.UID, conta
 
 	// hold attach conn
 	sopts := libdocker.StreamOptions{
-		InputStream:  os.Stdin,
-		OutputStream: os.Stdout,
-		ErrorStream:  os.Stderr,
+		InputStream:  in,
+		OutputStream: out,
+		ErrorStream:  err,
 		RawTerminal:  true,
 	}
 	er = a.holdHijackedConnection(sopts.RawTerminal, sopts.InputStream, sopts.OutputStream, sopts.ErrorStream, resp)
 	if er != nil {
 		fmt.Println(er)
+		return er
 	}
 	return nil
 }

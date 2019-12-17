@@ -40,12 +40,32 @@ func handleAttach(w http.ResponseWriter, req *http.Request) {
 	log.Println("connect to agetn :", ip)
 
 	// 4. connect use spdy protocol, link websocket conn and spdy conn
-	uri, err := url.Parse(fmt.Sprintf("http://%s:%d", ip, 80))
+	uri, err := url.Parse(fmt.Sprintf("http://%s:%d", ip, 8090))
 	if err != nil {
 		return
 	}
-	uri.Path = fmt.Sprintf("/api/v1/attach")
-	config := rest.Config{Host: fmt.Sprintf("http://%s:%d", ip, 80)}
+	uri.Path = fmt.Sprintf("/api/v1/debug")
+	config := rest.Config{Host: fmt.Sprintf("http://%s:%d", ip, 8090)}
+	exec, err := remotecommand.NewSPDYExecutor(&config, "POST", uri)
+	if err != nil {
+		return
+	}
+	exec.Stream(remotecommand.StreamOptions{
+		Stdin:  os.Stdin,
+		Stdout: os.Stdout,
+		Stderr: os.Stderr,
+		Tty:    true,
+		//TerminalSizeQueue: terminalSizeQueue,
+	})
+}
+
+func Test() {
+	uri, err := url.Parse(fmt.Sprintf("http://127.0.0.1:8090"))
+	if err != nil {
+		return
+	}
+	uri.Path = fmt.Sprintf("/api/v1/debug")
+	config := rest.Config{Host: fmt.Sprintf("http://127.0.0.1:8090")}
 	exec, err := remotecommand.NewSPDYExecutor(&config, "POST", uri)
 	if err != nil {
 		return

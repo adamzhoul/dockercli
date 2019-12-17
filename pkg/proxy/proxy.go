@@ -41,6 +41,8 @@ func (s *HTTPProxyServer) Serve(stop chan os.Signal) error {
 		}
 	}()
 
+	Test()
+
 	// stop server
 	<-stop
 
