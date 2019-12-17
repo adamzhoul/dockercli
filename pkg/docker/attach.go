@@ -2,7 +2,6 @@ package docker
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
@@ -35,6 +34,7 @@ func (a *ContainerAttacher) AttachContainer(name string, uid kubetype.UID, conta
 		Stdout: true,
 	}
 	ctx := context.Background()
+	log.Println("attach container:", container)
 	resp, er := a.client.ContainerAttach(ctx, container, opts)
 	if er != nil {
 		log.Println(er)
@@ -51,7 +51,7 @@ func (a *ContainerAttacher) AttachContainer(name string, uid kubetype.UID, conta
 	}
 	er = a.holdHijackedConnection(sopts.RawTerminal, sopts.InputStream, sopts.OutputStream, sopts.ErrorStream, resp)
 	if er != nil {
-		fmt.Println(er)
+		log.Println(er)
 		return er
 	}
 	return nil

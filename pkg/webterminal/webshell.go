@@ -114,7 +114,7 @@ func (t *TerminalSession) Read(p []byte) (int, error) {
 
 // Write called from remotecommand whenever there is any output
 func (t *TerminalSession) Write(p []byte) (int, error) {
-	msg, err := json.Marshal(webshell.TerminalMessage{
+	msg, err := json.Marshal(TerminalMessage{
 		Operation: "stdout",
 		Data:      string(p),
 	})

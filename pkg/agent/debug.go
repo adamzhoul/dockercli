@@ -1,6 +1,7 @@
 package agent
 
 import (
+	"log"
 	"net/http"
 	"time"
 
@@ -18,6 +19,7 @@ import (
 // 5. attach to sidecar container
 func handleDebug(w http.ResponseWriter, req *http.Request) {
 
+	log.Println("handle debug")
 	streamOpts := &kubeletremote.Options{
 		Stdin:  true,
 		Stdout: true,
@@ -30,7 +32,7 @@ func handleDebug(w http.ResponseWriter, req *http.Request) {
 		GetAttacher(),
 		"",
 		"",
-		"daa89d14b237",
+		"f3025c9dd95b",
 		streamOpts,
 		10*time.Minute,
 		15*time.Second,

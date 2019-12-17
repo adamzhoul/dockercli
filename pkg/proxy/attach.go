@@ -7,7 +7,6 @@ import (
 	"net/url"
 	"os"
 
-	"github.com/adamzhoul/dockercli/pkg/kubernetes"
 	"github.com/adamzhoul/dockercli/pkg/webterminal"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/remotecommand"
@@ -17,29 +16,35 @@ import (
 // find container node
 // connect to agent which on the same node
 func handleAttach(w http.ResponseWriter, req *http.Request) {
+
 	pty, err := webterminal.NewTerminalSession(w, req, nil)
-
-	// 1. upgrade protocol to websocket
-	podsName := req.PostForm["podsName"]
-
-	if len(podsName) != 1 {
-		Err(w, "only one pod supported!")
+	if err != nil {
+		log.Println(err)
 		return
 	}
 
-	// 2. find container node
-	pods := kubernetes.FindPodsByName("", podsName)
-	if len(pods) != 1 {
-		return
-	}
+	// // 1. upgrade protocol to websocket
+	// podsName := req.PostForm["podsName"]
 
-	// 3. get agent ip
-	agent := kubernetes.FindPodsByLabel("", "")
-	if len(agent) != 1 {
+	// if len(podsName) != 1 {
+	// 	Err(w, "only one pod supported!")
+	// 	return
+	// }
 
-	}
-	ip := agent[0].Status.PodIP
-	log.Println("connect to agetn :", ip)
+	// // 2. find container node
+	// pods := kubernetes.FindPodsByName("", podsName)
+	// if len(pods) != 1 {
+	// 	return
+	// }
+
+	// // 3. get agent ip
+	// agent := kubernetes.FindPodsByLabel("", "")
+	// if len(agent) != 1 {
+
+	// }
+	// ip := agent[0].Status.PodIP
+	// log.Println("connect to agetn :", ip)
+	ip := "127.0.0.1"
 
 	// 4. connect use spdy protocol, link websocket conn and spdy conn
 	uri, err := url.Parse(fmt.Sprintf("http://%s:%d", ip, 8090))
@@ -50,6 +55,7 @@ func handleAttach(w http.ResponseWriter, req *http.Request) {
 	config := rest.Config{Host: fmt.Sprintf("http://%s:%d", ip, 8090)}
 	exec, err := remotecommand.NewSPDYExecutor(&config, "POST", uri)
 	if err != nil {
+		log.Println(err)
 		return
 	}
 	exec.Stream(remotecommand.StreamOptions{
