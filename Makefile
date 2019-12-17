@@ -6,5 +6,8 @@ server:
 client: 
 	GOPROXY=https://goproxy.cn go build -o dc cmd/cli/cli.go 
 
+agent:
+	GOPROXY=https://goproxy.cn go build -o ag cmd/agent/agent.go 
+
 run: 
 	./server

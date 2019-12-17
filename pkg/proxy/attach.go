@@ -44,7 +44,7 @@ func handleAttach(w http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		return
 	}
-	uri.Path = fmt.Sprintf("/api/v1/debug")
+	uri.Path = fmt.Sprintf("/api/v1/attach")
 	config := rest.Config{Host: fmt.Sprintf("http://%s:%d", ip, 80)}
 	exec, err := remotecommand.NewSPDYExecutor(&config, "POST", uri)
 	if err != nil {
