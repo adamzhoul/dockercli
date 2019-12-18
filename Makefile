@@ -1,19 +1,13 @@
-buildall: server client
+buildandrun: build proxy
 
-server: 
-	GOPROXY=https://goproxy.cn go build -o ser  cmd/proxy/proxy.go 
+mac_build:
+	GOOS=darwin GOPROXY=https://goproxy.cn go build -o debugctl main.go 
 
-mac_server:
-	GOOS=darwin GOPROXY=https://goproxy.cn go build -o ser  cmd/proxy/proxy.go 
-
-client: 
-	GOPROXY=https://goproxy.cn go build -o dc cmd/cli/cli.go 
-
-mac_agent:
-	GOOS=darwin GOPROXY=https://goproxy.cn go build -o ag cmd/agent/agent.go 
+build:
+	GOPROXY=https://goproxy.cn go build -o debugctl main.go 
 
 agent:
-	GOPROXY=https://goproxy.cn go build -o ag cmd/agent/agent.go 
+	./debugctl agent
 
-run: 
-	./server
+proxy:
+	./debug proxys

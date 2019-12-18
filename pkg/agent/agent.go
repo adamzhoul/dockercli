@@ -1,6 +1,7 @@
 package agent
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -30,7 +31,7 @@ func NewHTTPAgentServer(config *HTTPConfig) *HTTPAgentServer {
 func (s *HTTPAgentServer) Serve(stop chan os.Signal) error {
 
 	go func() {
-		log.Printf("Http Server started! Welcome aboard! \n")
+		log.Printf(fmt.Sprintf("Http Server started at %s! Welcome aboard! \n", s.config.ListenAddress))
 
 		if err := s.server.ListenAndServe(); err != nil {
 			log.Fatal(err)
