@@ -7,11 +7,13 @@ import (
 	"os"
 	"testing"
 
+	"github.com/adamzhoul/dockercli/pkg/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/remotecommand"
 )
 
 func TestGetAgentAddress(t *testing.T) {
+	kubernetes.InitClientgo("../../configs/kube/config")
 	agentAddress, err := getAgentAddress("mservice", "96143-helloworld-mservice-557545669f-drqdf")
 	if err != nil {
 		log.Fatal(err)
