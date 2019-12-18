@@ -1,12 +1,12 @@
-function getQueryVariable(variable) {
-	let query = window.location.search.substring(1);
-	let vars = query.split("&");
-	for (let i=0;i<vars.length;i++) {
-			let pair = vars[i].split("=");
-			if(pair[0] == variable){return pair[1];}
-	}
-	return(false);
-}
+// function getQueryVariable(variable) {
+// 	let query = window.location.search.substring(1);
+// 	let vars = query.split("&");
+// 	for (let i=0;i<vars.length;i++) {
+// 			let pair = vars[i].split("=");
+// 			if(pair[0] == variable){return pair[1];}
+// 	}
+// 	return(false);
+// }
 
 function connect(){
 	
@@ -19,6 +19,7 @@ function connect(){
 		term.open(document.getElementById("terminal"));
 		term.write("connecting to pod "+ "...")
 		term.fit();
+		//console.log(term.cols, term.rows);
 		// term.toggleFullScreen(true);
 		term.on('data', function (data) {
 			msg = {operation: "stdin", data: data}
@@ -32,6 +33,7 @@ function connect(){
 
 		conn = new WebSocket(url);
 		conn.onopen = function(e) {
+			conn.send(JSON.stringify({operation:"resize",cols: window.innerWidth,rows: window.innerHeight}))
 			term.write("\r");
 			msg = {operation: "stdin", data: "export TERM=xterm && clear \r"}
 			conn.send(JSON.stringify(msg))

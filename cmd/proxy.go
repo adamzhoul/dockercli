@@ -13,6 +13,7 @@ var (
 	agentAddress       string
 	proxyListenAddress string
 	kubeConfigPath     string
+	skipKube           bool
 )
 
 var proxyCmd = &cobra.Command{
@@ -25,9 +26,10 @@ var proxyCmd = &cobra.Command{
 
 func init() {
 
-	proxyCmd.Flags().StringVar(&agentAddress, "agentAddress", "", "agent ip port")
-	proxyCmd.Flags().StringVar(&proxyListenAddress, "proxyListenAddress", "0.0.0.0:80", "http listener")
-	proxyCmd.Flags().StringVar(&kubeConfigPath, "kubeConfigPath", "./configs/kube/config", "kube config ")
+	proxyCmd.Flags().StringVar(&agentAddress, "agent", "", "agent ip port")
+	proxyCmd.Flags().StringVar(&proxyListenAddress, "addr", "0.0.0.0:80", "http listener")
+	proxyCmd.Flags().StringVar(&kubeConfigPath, "kubeConfig", "./configs/kube/config", "kube config ")
+	proxyCmd.Flags().BoolVar(&skipKube, "skipKube", false, "skip kube config or not")
 
 }
 
@@ -51,5 +53,8 @@ func runProxy(cmd *cobra.Command, args []string) error {
 
 func initConfig() {
 
-	kubernetes.InitClientgo(kubeConfigPath)
+	if !skipKube {
+		kubernetes.InitClientgo(kubeConfigPath)
+	}
+
 }

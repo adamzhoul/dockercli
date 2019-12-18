@@ -31,10 +31,21 @@
 <body style="border-width: 0;margin: 0">
 	<div id="terminal"></div>
 <script>
+	
+	// url = "ws://"+document.location.host+"/api/v1/attach"
+	// console.log(url);
+	// conn = new WebSocket(url);
+
 	window.onload = function () {
+
 		Terminal.applyAddon(fit);
+		
+	// 
 		// Terminal.applyAddon(fullscreen);
 		connect();
 	};
+	// window.onresize = function(){
+	// 	conn.send(JSON.stringify({operation:"resize",cols: window.innerWidth,rows: window.innerHeight}))
+	// }
 </script>
 </body>
