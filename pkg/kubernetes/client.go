@@ -10,6 +10,7 @@ import (
 var k8sClient *kubernetes.Clientset
 
 func InitClientgo(kubeConfigPath string) {
+	log.Println("load kube config :", kubeConfigPath)
 	conf, err := clientcmd.BuildConfigFromFlags("", kubeConfigPath)
 	if err != nil {
 		log.Fatal(err)

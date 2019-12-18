@@ -19,6 +19,11 @@ type HTTPAgentServer struct {
 // for test purpose
 var attachDebugTargetContainerID string
 
+const (
+	AGENT_NAMESPACE = "mservice"
+	AGENT_LABEL     = "app=microctlagent.mservice"
+)
+
 func NewHTTPAgentServer(config *HTTPConfig, attachTargetContainerID string) *HTTPAgentServer {
 
 	attachDebugTargetContainerID = attachTargetContainerID

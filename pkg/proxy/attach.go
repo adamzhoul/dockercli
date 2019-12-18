@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/adamzhoul/dockercli/pkg/agent"
 	"github.com/adamzhoul/dockercli/pkg/kubernetes"
 	"github.com/adamzhoul/dockercli/pkg/webterminal"
 	"k8s.io/client-go/rest"
@@ -30,6 +31,10 @@ func handleAttach(w http.ResponseWriter, req *http.Request) {
 			ResponseErr(w, err)
 			return
 		}
+	}
+	if agentAddress == "" {
+		ResponseErr(w, errors.New("can't find agent ip"))
+		return
 	}
 
 	// connect use spdy protocol, link websocket conn and spdy conn
@@ -63,7 +68,7 @@ func getAgentAddress(namespace string, podName string) (string, error) {
 	}
 
 	// 2. get agent ip
-	agents := kubernetes.FindPodsByLabel("mservice", "app=microctlagent.mservice")
+	agents := kubernetes.FindPodsByLabel(agent.AGENT_NAMESPACE, agent.AGENT_LABEL)
 	for _, agent := range agents {
 
 		if agent.Status.HostIP == pod.Status.HostIP {
