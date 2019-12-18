@@ -11,8 +11,9 @@ import (
 )
 
 var (
-	listenAddress string
-	dockerAddress string
+	listenAddress           string
+	dockerAddress           string
+	attachTargetContainerID string // for test purpose
 )
 
 var agentCmd = &cobra.Command{
@@ -27,6 +28,7 @@ func init() {
 
 	agentCmd.Flags().StringVar(&listenAddress, "listenAddress", "0.0.0.0:80", "http listener")
 	agentCmd.Flags().StringVar(&dockerAddress, "dockerAddress", "/var/run/docker.sock", "docker socket path")
+	agentCmd.Flags().StringVar(&attachTargetContainerID, "cid", "", "which container attach to")
 
 }
 
@@ -35,14 +37,14 @@ func runAgent(cmd *cobra.Command, args []string) error {
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt)
 
-	log.Println("load config success:", listenAddress, dockerAddress)
+	log.Println("load config success:", listenAddress, dockerAddress, attachTargetContainerID)
 	docker.InitDockerclientConn(dockerAddress)
 	config := agent.HTTPConfig{
 		ListenAddress: listenAddress,
 	}
 
 	// start an HttpServer
-	agentServer := agent.NewHTTPAgentServer(&config)
+	agentServer := agent.NewHTTPAgentServer(&config, attachTargetContainerID)
 	agentServer.Serve(stop)
 
 	return nil

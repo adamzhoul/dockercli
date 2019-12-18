@@ -16,8 +16,12 @@ type HTTPAgentServer struct {
 	config *HTTPConfig // http server run params
 }
 
-func NewHTTPAgentServer(config *HTTPConfig) *HTTPAgentServer {
+// for test purpose
+var attachDebugTargetContainerID string
 
+func NewHTTPAgentServer(config *HTTPConfig, attachTargetContainerID string) *HTTPAgentServer {
+
+	attachDebugTargetContainerID = attachTargetContainerID
 	muex := proxyRoute()
 	return &HTTPAgentServer{
 		server: &http.Server{

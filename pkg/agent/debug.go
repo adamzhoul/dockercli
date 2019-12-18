@@ -26,13 +26,14 @@ func handleDebug(w http.ResponseWriter, req *http.Request) {
 		Stderr: false,
 		TTY:    true,
 	}
+	attachTargetContainerID := attachDebugTargetContainerID
 	kubeletremote.ServeAttach(
 		w,
 		req,
 		GetAttacher(),
 		"",
 		"",
-		"d2a715e3c9f8",
+		attachTargetContainerID,
 		streamOpts,
 		10*time.Minute,
 		15*time.Second,

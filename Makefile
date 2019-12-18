@@ -1,4 +1,4 @@
-buildandrun: build proxy
+default: build
 
 mac_build:
 	GOOS=darwin GOPROXY=https://goproxy.cn go build -o debugctl main.go 
@@ -10,4 +10,4 @@ agent:
 	./debugctl agent
 
 proxy:
-	./debug proxys
+	./debugctl proxys
