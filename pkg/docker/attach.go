@@ -36,10 +36,13 @@ func (a *ContainerAttacher) AttachContainer(name string, uid kubetype.UID, conta
 	HandleResizing(resize, func(size remotecommand.TerminalSize) {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
-		a.client.ContainerResize(ctx, container, types.ResizeOptions{
+		er := a.client.ContainerResize(ctx, container, types.ResizeOptions{
 			Height: uint(size.Height),
 			Width:  uint(size.Width),
 		})
+		if er != nil {
+			log.Println("resize failed:", er)
+		}
 
 	})
 

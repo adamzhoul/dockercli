@@ -2,6 +2,7 @@ package proxy
 
 import (
 	"fmt"
+	"log"
 	"net/url"
 	"os"
 	"testing"
@@ -9,6 +10,14 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/remotecommand"
 )
+
+func TestGetAgentAddress(t *testing.T) {
+	agentAddress, err := getAgentAddress("mservice", "96143-helloworld-mservice-557545669f-drqdf")
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Println(agentAddress)
+}
 
 func TestSpdy(t *testing.T) {
 	uri, err := url.Parse(fmt.Sprintf("http://127.0.0.1:8090"))

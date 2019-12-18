@@ -10,8 +10,9 @@ import (
 )
 
 var (
-	agentIp            string
+	agentAddress       string
 	proxyListenAddress string
+	kubeConfigPath     string
 )
 
 var proxyCmd = &cobra.Command{
@@ -24,8 +25,9 @@ var proxyCmd = &cobra.Command{
 
 func init() {
 
-	proxyCmd.Flags().StringVar(&agentIp, "agentIp", "", "http listener")
+	proxyCmd.Flags().StringVar(&agentAddress, "agentAddress", "", "agent ip port")
 	proxyCmd.Flags().StringVar(&proxyListenAddress, "proxyListenAddress", "0.0.0.0:80", "http listener")
+	proxyCmd.Flags().StringVar(&kubeConfigPath, "kubeConfigPath", "./configs/kube/config", "kube config ")
 
 }
 
@@ -33,14 +35,14 @@ func runProxy(cmd *cobra.Command, args []string) error {
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt)
 
-	//initConfig()
+	initConfig()
 
 	config := proxy.HTTPConfig{
 		ListenAddress: proxyListenAddress,
 	}
 
 	// start an HttpServer
-	proxy := proxy.NewHTTPProxyServer(&config, agentIp)
+	proxy := proxy.NewHTTPProxyServer(&config, agentAddress)
 	proxy.Serve(stop)
 
 	// docker.imag()
@@ -49,5 +51,5 @@ func runProxy(cmd *cobra.Command, args []string) error {
 
 func initConfig() {
 
-	kubernetes.InitClientgo("./configs/kube/config")
+	kubernetes.InitClientgo(kubeConfigPath)
 }

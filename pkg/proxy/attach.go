@@ -1,12 +1,13 @@
 package proxy
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
 	"net/url"
-	"os"
 
+	"github.com/adamzhoul/dockercli/pkg/kubernetes"
 	"github.com/adamzhoul/dockercli/pkg/webterminal"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/remotecommand"
@@ -19,40 +20,25 @@ func handleAttach(w http.ResponseWriter, req *http.Request) {
 
 	pty, err := webterminal.NewTerminalSession(w, req, nil)
 	if err != nil {
-		log.Println(err)
+		ResponseErr(w, err)
 		return
 	}
 
-	// // 1. upgrade protocol to websocket
-	// podsName := req.PostForm["podsName"]
+	if agentAddress == "" {
+		agentAddress, err = getAgentAddress("mservice", "96143-helloworld-mservice-557545669f-drqdf")
+		if err != nil {
+			ResponseErr(w, err)
+			return
+		}
+	}
 
-	// if len(podsName) != 1 {
-	// 	Err(w, "only one pod supported!")
-	// 	return
-	// }
-
-	// // 2. find container node
-	// pods := kubernetes.FindPodsByName("", podsName)
-	// if len(pods) != 1 {
-	// 	return
-	// }
-
-	// // 3. get agent ip
-	// agent := kubernetes.FindPodsByLabel("", "")
-	// if len(agent) != 1 {
-
-	// }
-	// ip := agent[0].Status.PodIP
-	// log.Println("connect to agetn :", ip)
-	ip := "127.0.0.1"
-
-	// 4. connect use spdy protocol, link websocket conn and spdy conn
-	uri, err := url.Parse(fmt.Sprintf("http://%s:%d", ip, 8090))
+	// connect use spdy protocol, link websocket conn and spdy conn
+	uri, err := url.Parse(fmt.Sprintf("http://%s", agentAddress))
 	if err != nil {
 		return
 	}
 	uri.Path = fmt.Sprintf("/api/v1/debug")
-	config := rest.Config{Host: fmt.Sprintf("http://%s:%d", ip, 8090)}
+	config := rest.Config{Host: uri.Host}
 	exec, err := remotecommand.NewSPDYExecutor(&config, "POST", uri)
 	if err != nil {
 		log.Println(err)
@@ -68,22 +54,22 @@ func handleAttach(w http.ResponseWriter, req *http.Request) {
 	})
 }
 
-func Test() {
-	uri, err := url.Parse(fmt.Sprintf("http://127.0.0.1:8090"))
-	if err != nil {
-		return
+func getAgentAddress(namespace string, podName string) (string, error) {
+
+	// 1. find container node
+	pod := kubernetes.FindPodByName(namespace, podName)
+	if pod == nil {
+		return "", errors.New("pod not found")
 	}
-	uri.Path = fmt.Sprintf("/api/v1/debug")
-	config := rest.Config{Host: fmt.Sprintf("http://127.0.0.1:8090")}
-	exec, err := remotecommand.NewSPDYExecutor(&config, "POST", uri)
-	if err != nil {
-		return
+
+	// 2. get agent ip
+	agents := kubernetes.FindPodsByLabel("mservice", "app=microctlagent.mservice")
+	for _, agent := range agents {
+
+		if agent.Status.HostIP == pod.Status.HostIP {
+			return agent.Status.PodIP, nil
+		}
 	}
-	exec.Stream(remotecommand.StreamOptions{
-		Stdin:  os.Stdin,
-		Stdout: os.Stdout,
-		Stderr: os.Stderr,
-		Tty:    true,
-		//TerminalSizeQueue: terminalSizeQueue,
-	})
+
+	return "", errors.New("agent not found")
 }

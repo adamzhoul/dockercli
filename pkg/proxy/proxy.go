@@ -43,8 +43,6 @@ func (s *HTTPProxyServer) Serve(stop chan os.Signal) error {
 		}
 	}()
 
-	Test()
-
 	// stop server
 	<-stop
 
@@ -62,10 +60,6 @@ func (s *HTTPProxyServer) Shutdown() {
 	if err != nil {
 		log.Fatal(err)
 	}
-}
-
-func Err(w http.ResponseWriter, err string) {
-	w.Write([]byte(err))
 }
 
 func proxyRoute() *http.ServeMux {
@@ -91,4 +85,9 @@ func healthz(w http.ResponseWriter, req *http.Request) {
 
 func IndexHtml(w http.ResponseWriter, req *http.Request) {
 	http.ServeFile(w, req, "./fe/index.html")
+}
+
+func ResponseErr(w http.ResponseWriter, err error) {
+	log.Println(err.Error())
+	w.Write([]byte(err.Error()))
 }
