@@ -33,6 +33,10 @@ func handleDebug(w http.ResponseWriter, req *http.Request) {
 		ResponseErr(w, err)
 		return
 	}
+	defer func() {
+		log.Println("close session.")
+		pty.Close()
+	}()
 
 	// 2. supply conn params
 	var containerImage, containerID, hostIP string
@@ -40,6 +44,7 @@ func handleDebug(w http.ResponseWriter, req *http.Request) {
 	if testAgentAddress == "" {
 		containerImage, containerID, hostIP, err = findPodContainerInfo(namespace, podName, containerName)
 		if err != nil {
+			pty.Done()
 			ResponseErr(w, err)
 			return
 		}
@@ -47,6 +52,7 @@ func handleDebug(w http.ResponseWriter, req *http.Request) {
 		podAgentAddress, err = getAgentAddress(hostIP)
 		log.Printf("find pod %s agent address %s", podName, podAgentAddress)
 		if err != nil {
+			pty.Done()
 			ResponseErr(w, err)
 			return
 		}
@@ -65,6 +71,7 @@ func handleDebug(w http.ResponseWriter, req *http.Request) {
 	log.Println("connect to agent ", uri, params)
 	exec, err := remotecommand.NewSPDYExecutor(&rest.Config{Host: uri.Host}, "POST", uri)
 	if err != nil {
+		pty.Done()
 		ResponseErr(w, err)
 		return
 	}
@@ -77,7 +84,9 @@ func handleDebug(w http.ResponseWriter, req *http.Request) {
 		TerminalSizeQueue: pty,
 	})
 	if err != nil {
-		log.Println(err)
+		pty.Done()
+		pty.Close()
+		log.Println("stream err:", err)
 	}
 }
 
