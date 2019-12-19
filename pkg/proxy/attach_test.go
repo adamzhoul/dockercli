@@ -14,7 +14,7 @@ import (
 
 func TestGetAgentAddress(t *testing.T) {
 	kubernetes.InitClientgo("../../configs/kube/config")
-	agentAddress, err := getAgentAddress("mservice", "96143-helloworld-mservice-557545669f-drqdf")
+	agentAddress, err := getAgentAddress("")
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -58,9 +58,8 @@ func handleDebug(w http.ResponseWriter, req *http.Request) {
 	}
 	uri.Path = fmt.Sprintf("/api/v1/debug")
 	params := url.Values{}
-	params.Add("debugImage", containerImage)
-	params.Add("debugContainerCmd", "/bin/bash")
-	params.Add("containerID", containerID)
+	params.Add("attachImage", containerImage)
+	params.Add("debugContainerID", containerID)
 	uri.RawQuery = params.Encode()
 	config := rest.Config{Host: uri.Host}
 	exec, err := remotecommand.NewSPDYExecutor(&config, "POST", uri)
