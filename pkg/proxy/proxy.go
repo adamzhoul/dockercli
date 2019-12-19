@@ -2,6 +2,7 @@ package proxy
 
 import (
 	"context"
+	"github.com/gorilla/mux"
 	"log"
 	"net/http"
 	"os"
@@ -22,11 +23,11 @@ var agentAddress string // which agent ip  server proxy to
 func NewHTTPProxyServer(config *HTTPConfig, aAddress string) *HTTPProxyServer {
 
 	agentAddress = aAddress
-	muex := proxyRoute()
+	route := proxyRoute()
 	return &HTTPProxyServer{
 		server: &http.Server{
 			Addr:    config.ListenAddress,
-			Handler: muex},
+			Handler: route},
 		config:    config,
 		k8sConfig: "",
 	}
@@ -62,20 +63,23 @@ func (s *HTTPProxyServer) Shutdown() {
 	}
 }
 
-func proxyRoute() *http.ServeMux {
+func proxyRoute() *mux.Router {
 
-	mux := http.NewServeMux()
+	//mux := http.NewServeMux()
+	route := mux.NewRouter()
 
 	// load html static file
-	mux.HandleFunc("/", IndexHtml)
-	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./fe/static/"))))
+	route.HandleFunc("/", IndexHtml)
+	route.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./fe/static/"))))
+	//route.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./fe/static/"))))
 
 	// api
-	mux.HandleFunc("/api/v1/logs", handleLog)
-	mux.HandleFunc("/api/v1/attach", handleAttach)
-	mux.HandleFunc("/healthz", healthz)
+	route.HandleFunc("/api/v1/logs", handleLog)
+	route.HandleFunc("/api/v1/debug/ns/{namespace}/pod/{podName}/container/{containerName}/image/{image}", handleDebug)
+	route.HandleFunc("/api/v1/debug/ns/{namespace}/pod/{podName}/container/{containerName}", handleDebug)
+	route.HandleFunc("/healthz", healthz)
 
-	return mux
+	return route
 }
 
 // probe health checks

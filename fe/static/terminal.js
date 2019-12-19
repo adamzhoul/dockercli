@@ -10,7 +10,8 @@
 
 function connect(){
 	
-	url = "ws://"+document.location.host+"/api/v1/attach"
+	//url = "ws://"+document.location.host+"/api/v1/debug/ns/mservice/pod/96143-helloworld-mservice-557545669f-drqdf/container/application/image/aaa"
+	url = "ws://"+document.location.host+"/api/v1/debug/ns/mservice/pod/96143-helloworld-mservice-557545669f-drqdf/container/application"
 	console.log(url);
 	let term = new Terminal({
 		"cursorBlink":true,
