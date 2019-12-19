@@ -19,10 +19,10 @@ type HTTPProxyServer struct {
 	k8sConfig string      // configs for k8s client-go connection
 }
 
-var agentAddress string // which agent ip  server proxy to
+var testAgentAddress string // which agent ip  server proxy to
 func NewHTTPProxyServer(config *HTTPConfig, aAddress string) *HTTPProxyServer {
 
-	agentAddress = aAddress
+	testAgentAddress = aAddress
 	route := proxyRoute()
 	return &HTTPProxyServer{
 		server: &http.Server{

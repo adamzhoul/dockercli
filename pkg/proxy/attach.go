@@ -36,45 +36,49 @@ func handleDebug(w http.ResponseWriter, req *http.Request) {
 
 	// 2. supply conn params
 	var containerImage, containerID, hostIP string
-	if agentAddress == "" {
+	var podAgentAddress string
+	if testAgentAddress == "" {
 		containerImage, containerID, hostIP, err = findPodContainerInfo(namespace, podName, containerName)
 		if err != nil {
 			ResponseErr(w, err)
 			return
 		}
 
-		agentAddress, err = getAgentAddress(hostIP)
-		log.Printf("find pod %s agent address %s", podName, agentAddress)
+		podAgentAddress, err = getAgentAddress(hostIP)
+		log.Printf("find pod %s agent address %s", podName, podAgentAddress)
 		if err != nil {
 			ResponseErr(w, err)
 			return
 		}
+	} else {
+		podAgentAddress = testAgentAddress
 	}
 
 	// 3. connect use spdy protocol, link websocket conn and spdy conn
-	uri, err := url.Parse(fmt.Sprintf("http://%s", agentAddress))
-	if err != nil {
-		return
-	}
+	uri, _ := url.Parse(fmt.Sprintf("http://%s", podAgentAddress))
 	uri.Path = fmt.Sprintf("/api/v1/debug")
 	params := url.Values{}
 	params.Add("attachImage", containerImage)
 	params.Add("debugContainerID", containerID)
 	uri.RawQuery = params.Encode()
-	config := rest.Config{Host: uri.Host}
-	exec, err := remotecommand.NewSPDYExecutor(&config, "POST", uri)
+	// config := rest.Config{Host: uri.Host}
+	log.Println("connect to agent ", uri, params)
+	exec, err := remotecommand.NewSPDYExecutor(&rest.Config{Host: uri.Host}, "POST", uri)
 	if err != nil {
 		ResponseErr(w, err)
 		return
 	}
 
-	exec.Stream(remotecommand.StreamOptions{
+	err = exec.Stream(remotecommand.StreamOptions{
 		Stdin:             pty,
 		Stdout:            pty,
 		Stderr:            pty,
 		Tty:               true,
 		TerminalSizeQueue: pty,
 	})
+	if err != nil {
+		log.Println(err)
+	}
 }
 
 // get pod container info
