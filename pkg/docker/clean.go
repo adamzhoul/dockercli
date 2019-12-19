@@ -3,6 +3,7 @@ package docker
 import (
 	"context"
 	"log"
+	"time"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
@@ -10,16 +11,21 @@ import (
 
 func CleanContainer(id string) {
 
-	ctx := context.Background()
+	log.Println("prepare clean process ->", client.ClientVersion())
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second) // graceful exit timeout
+	defer cancel()
 	// wait the container gracefully exit
-	statusCode, err := client.ContainerWait(ctx, id, container.WaitConditionNotRunning)
+	statusCodeCh, errCh := client.ContainerWait(ctx, id, container.WaitConditionNotRunning)
+	log.Println("wait done")
 	var rmErr error
-	if err != nil {
-		log.Println("error waiting container exit, kill with --force")
-		// timeout or error occurs, try force remove anywawy
-		rmErr = rmContainer(id, true)
-	} else {
-		log.Println("container return response code:", statusCode)
+	select {
+	case err := <-errCh:
+		if err != nil {
+			log.Println("error waiting container exit, kill with --force", err)
+			// timeout or error occurs, try force remove anywawy
+			rmErr = rmContainer(id, true)
+		}
+	case <-statusCodeCh:
 		rmErr = rmContainer(id, false)
 	}
 
@@ -38,6 +44,7 @@ func rmContainer(id string, force bool) error {
 			Force: force,
 		})
 	if err != nil {
+		log.Println(err)
 		return err
 	}
 

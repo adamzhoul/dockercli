@@ -90,7 +90,8 @@ func (a *ContainerAttacher) holdHijackedConnection(tty bool, inputStream io.Read
 	stdinDone := make(chan struct{})
 	go func() {
 		if inputStream != nil {
-			io.Copy(resp.Conn, inputStream)
+			n, err := io.Copy(resp.Conn, inputStream)
+			log.Println("input  number ", n, err)
 		}
 		resp.CloseWrite()
 		close(stdinDone)
@@ -116,7 +117,8 @@ func redirectResponseToOutputStream(tty bool, outputStream, errorStream io.Write
 	}
 	var err error
 	if tty {
-		_, err = io.Copy(outputStream, resp)
+		n, err := io.Copy(outputStream, resp)
+		log.Println("output  number ", n, err)
 	} else {
 		num, err := stdcopy.StdCopy(outputStream, errorStream, resp)
 		log.Println(num, err) // 0 Unrecognized input header: 67
