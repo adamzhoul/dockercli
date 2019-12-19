@@ -17,7 +17,7 @@ type HTTPAgentServer struct {
 }
 
 // for test purpose
-var attachDebugTargetContainerID string
+var testAttachTargetContainerID string
 
 const (
 	AGENT_NAMESPACE = "mservice"
@@ -26,7 +26,7 @@ const (
 
 func NewHTTPAgentServer(config *HTTPConfig, attachTargetContainerID string) *HTTPAgentServer {
 
-	attachDebugTargetContainerID = attachTargetContainerID
+	testAttachTargetContainerID = attachTargetContainerID
 	muex := proxyRoute()
 	return &HTTPAgentServer{
 		server: &http.Server{
