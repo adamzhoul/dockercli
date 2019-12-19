@@ -17,15 +17,17 @@ import (
 func handleDebug(w http.ResponseWriter, req *http.Request) {
 
 	log.Println("handle debug")
-	debugContainerID := req.FormValue("containerID")
-	debugImage := req.FormValue("debugImage")
+	//debugContainerID := req.FormValue("debugContainerID")
+	attachImage := req.FormValue("attachImage")
 	//debugContainerCmd := req.FormValue("debugContainerCmd")
 
 	// 1. start sidecar container, with specific image.
 	// If debugTargetContainer is empty
 	var attachTargetContainerID string
 	if testAttachTargetContainerID == "" {
-		resp, err := docker.CreateContainer(debugImage, debugContainerID)
+		//resp, err := docker.CreateContainer(attachImage, debugContainerID)
+		resp, err := docker.CreateContainer(attachImage, "ae48d95cd31f")
+		log.Println("debug container with image ----->", attachImage, resp.ID)
 		if err != nil {
 			log.Println(err)
 			return
@@ -56,7 +58,7 @@ func handleDebug(w http.ResponseWriter, req *http.Request) {
 		"",
 		attachTargetContainerID,
 		streamOpts,
-		10*time.Minute,
+		1*time.Minute,
 		15*time.Second,
 		remoteapi.SupportedStreamingProtocols)
 

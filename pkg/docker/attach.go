@@ -53,7 +53,9 @@ func (a *ContainerAttacher) AttachContainer(name string, uid kubetype.UID, conta
 		Stderr: true,
 		Stdout: true,
 	}
-	ctx := context.Background()
+	//ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
+	defer cancel()
 	log.Println("attach container:", container)
 	resp, er := a.client.ContainerAttach(ctx, container, opts)
 	if er != nil {

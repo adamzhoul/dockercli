@@ -30,7 +30,8 @@ func CreateContainer(image string, targetId string) (*container.ContainerCreateC
 		OpenStdin: true,
 	}, hostConfig, nil, "")
 	if err != nil {
-		panic(err)
+		log.Println(err)
+		return nil, err
 	}
 
 	return &resp, nil
