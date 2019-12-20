@@ -64,6 +64,7 @@ func (s *HTTPAgentServer) proxyRoute() *http.ServeMux {
 	mux.HandleFunc("/healthz", s.healthz)
 
 	mux.HandleFunc("/api/v1/debug", s.handleDebug)
+	mux.HandleFunc("/api/v1/exec", s.handleExec)
 
 	return mux
 }
