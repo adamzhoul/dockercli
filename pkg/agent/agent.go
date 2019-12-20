@@ -79,5 +79,5 @@ func (s *HTTPAgentServer) Index(w http.ResponseWriter, req *http.Request) {
 
 func ResponseErr(w http.ResponseWriter, err error, code int) {
 	log.Println(err.Error())
-	http.Error(w, err.Error(), 400)
+	http.Error(w, err.Error(), code)
 }

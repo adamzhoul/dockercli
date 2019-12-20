@@ -36,7 +36,7 @@ func init() {
 	agentCmd.Flags().StringVar(&attachTargetContainerID, "cid", "", "which container attach to")
 
 	var ttyIdleTimeoutMinute, containerCreateTimeoutSecond, containerGracefulExitTimeoutSecond int
-	agentCmd.Flags().IntVar(&ttyIdleTimeoutMinute, "ttyTimeout", 1, "tty connect idle timeout in minute")
+	agentCmd.Flags().IntVar(&ttyIdleTimeoutMinute, "ttyTimeout", 15, "tty connect idle timeout in minute")
 	agentCmd.Flags().IntVar(&containerCreateTimeoutSecond, "containerCreateTimeout", 15, "container create timeout in second")
 	agentCmd.Flags().IntVar(&containerGracefulExitTimeoutSecond, "containerExitTimeout", 15, "container exit timeout in second")
 
