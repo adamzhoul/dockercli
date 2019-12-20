@@ -37,14 +37,14 @@ func proxy2Agent(w http.ResponseWriter, req *http.Request, apiPath string) {
 
 	// 2. supply conn params
 	var containerImage, containerID, hostIP string
+	containerImage, containerID, hostIP, err = findPodContainerInfo(namespace, podName, containerName)
+	if err != nil {
+		pty.Done()
+		ResponseErr(w, err)
+		return
+	}
 	var podAgentAddress string
 	if testAgentAddress == "" {
-		containerImage, containerID, hostIP, err = findPodContainerInfo(namespace, podName, containerName)
-		if err != nil {
-			pty.Done()
-			ResponseErr(w, err)
-			return
-		}
 
 		podAgentAddress, err = getAgentAddress(hostIP)
 		log.Printf("find pod %s agent address %s", podName, podAgentAddress)

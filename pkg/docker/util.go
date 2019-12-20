@@ -90,3 +90,16 @@ func resizeContainer(size remotecommand.TerminalSize, client *dockerclient.Clien
 	}
 
 }
+
+func resizeExecContainer(size remotecommand.TerminalSize, client *dockerclient.Client, container string) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	er := client.ContainerExecResize(ctx, container, types.ResizeOptions{
+		Height: uint(size.Height),
+		Width:  uint(size.Width),
+	})
+	if er != nil {
+		log.Println("resize failed:", er)
+	}
+
+}

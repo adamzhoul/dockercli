@@ -2,8 +2,12 @@ package docker
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"io"
+	"log"
 	"os"
+	"strings"
 
 	"github.com/docker/docker/api/types"
 	dockerclient "github.com/docker/docker/client"
@@ -24,8 +28,12 @@ func NewContainerExecAttacher() *ContainerExecAttacher {
 
 func (e *ContainerExecAttacher) AttachContainer(name string, uid kubetype.UID, container string, in io.Reader, out, err io.WriteCloser, tty bool, resize <-chan remotecommand.TerminalSize) error {
 
-	// handle size
-	handleResizing(resize, e.client, container, resizeContainer)
+	if !strings.HasPrefix(container, dockerContainerPrefix) {
+		return errors.New(fmt.Sprintf("not docker container:%s", container))
+	}
+
+	dockerContainerId := container[len(dockerContainerPrefix):]
+	log.Println("exec attach:", dockerContainerId)
 
 	// execCreate
 	respIdExecCreate, er := e.client.ContainerExecCreate(context.Background(), container,
@@ -40,6 +48,9 @@ func (e *ContainerExecAttacher) AttachContainer(name string, uid kubetype.UID, c
 	if er != nil {
 		return er
 	}
+
+	// handle size
+	handleResizing(resize, e.client, respIdExecCreate.ID, resizeExecContainer)
 
 	// attach
 	resp, er := e.client.ContainerExecAttach(context.Background(), respIdExecCreate.ID, types.ExecStartCheck{
