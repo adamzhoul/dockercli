@@ -6,13 +6,25 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"os"
 	"strings"
 
 	"github.com/docker/docker/api/types"
+	dockerclient "github.com/docker/docker/client"
+	kubetype "k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/tools/remotecommand"
 )
 
-func TailLog(container string) error {
+type ContainerLogAttacher struct {
+	client *dockerclient.Client
+}
+
+func NewContainerLogAttacher() *ContainerLogAttacher {
+
+	return &ContainerLogAttacher{
+		client: client,
+	}
+}
+func (l *ContainerLogAttacher) AttachContainer(name string, uid kubetype.UID, container string, in io.Reader, out, err io.WriteCloser, tty bool, resize <-chan remotecommand.TerminalSize) error {
 
 	if !strings.HasPrefix(container, dockerContainerPrefix) {
 		return errors.New(fmt.Sprintf("not docker container:%s", container))
@@ -21,19 +33,18 @@ func TailLog(container string) error {
 	dockerContainerId := container[len(dockerContainerPrefix):]
 	log.Println("exec attach:", dockerContainerId)
 
-	resp, err := client.ContainerLogs(context.Background(), dockerContainerId, types.ContainerLogsOptions{
+	resp, er := l.client.ContainerLogs(context.Background(), dockerContainerId, types.ContainerLogsOptions{
 		ShowStderr: true,
 		ShowStdout: true,
 		Timestamps: false,
 		Follow:     true})
-	if err != nil {
-		return err
+	if er != nil {
+		return er
 	}
 
-	//resp.Read()
-	_, err = io.Copy(os.Stdout, resp)
-	if err != nil {
-		return err
+	_, er = io.Copy(out, resp)
+	if er != nil {
+		return er
 	}
 
 	return nil
