@@ -11,7 +11,10 @@
 function connect(){
 	
 	//url = "ws://"+document.location.host+"/api/v1/debug/ns/mservice/pod/96143-helloworld-mservice-557545669f-drqdf/container/application/image/aaa"
-	url = "ws://"+document.location.host+"/api/v1/debug/ns/mservice/pod/96143-helloworld-mservice-557545669f-drqdf/container/application"
+	url = "ws://"+document.location.host+"/api/v1/exec/ns/mservice/pod/96143-helloworld-mservice-8644cb8dd7-sfkx4/container/application"
+	if (document.location.pathname != "/"){
+		url = "ws://"+document.location.host+"/api/v1" + document.location.pathname
+	}
 	console.log(url);
 	let term = new Terminal({
 		"cursorBlink":true,
