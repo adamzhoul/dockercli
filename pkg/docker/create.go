@@ -15,7 +15,7 @@ import (
 func CreateContainer(image string, targetId string) (*container.ContainerCreateCreatedBody, error) {
 
 	if !strings.HasPrefix(targetId, dockerContainerPrefix) {
-		return nil, errors.New("only docker container is suppored right now")
+		return nil, errors.New("not docker container")
 	}
 
 	dockerContainerId := targetId[len(dockerContainerPrefix):]
