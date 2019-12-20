@@ -3,7 +3,6 @@ package docker
 import (
 	"context"
 	"log"
-	"time"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
@@ -11,20 +10,22 @@ import (
 
 func CleanContainer(id string) {
 
-	log.Println("prepare clean process ->", client.ClientVersion())
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second) // graceful exit timeout
+	//log.Println("prepare clean process ->", client.ClientVersion())
+	ctx, cancel := context.WithTimeout(context.Background(), runtimeConfig.GracefulExitTimeout) // graceful exit timeout
 	defer cancel()
-	// wait the container gracefully exit
+
+	log.Println("clean container, wait for exit or timeout")
+	// ContainerWati will return immediately
+	// but, will hang on  errCh channel or statusCodeCh,
+	// ctx.timeout will lead errCh get data
 	statusCodeCh, errCh := client.ContainerWait(ctx, id, container.WaitConditionNotRunning)
-	log.Println("wait done")
 	var rmErr error
 	select {
 	case err := <-errCh:
 		if err != nil {
-			log.Println("error waiting container exit, kill with --force", err)
-			// timeout or error occurs, try force remove anywawy
-			rmErr = rmContainer(id, true)
+			log.Println("error waiting container exit, kill with --force.", err)
 		}
+		rmErr = rmContainer(id, true)
 	case <-statusCodeCh:
 		rmErr = rmContainer(id, false)
 	}
@@ -38,13 +39,13 @@ func CleanContainer(id string) {
 
 func rmContainer(id string, force bool) error {
 
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), runtimeConfig.GracefulExitTimeout) // graceful exit timeout
+	defer cancel()
 	err := client.ContainerRemove(ctx, id,
 		types.ContainerRemoveOptions{
 			Force: force,
 		})
 	if err != nil {
-		log.Println(err)
 		return err
 	}
 

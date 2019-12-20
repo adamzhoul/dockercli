@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"time"
 
 	"github.com/adamzhoul/dockercli/pkg/agent"
 	"github.com/adamzhoul/dockercli/pkg/docker"
@@ -14,6 +15,10 @@ var (
 	listenAddress           string
 	dockerAddress           string
 	attachTargetContainerID string // for test purpose
+
+	ttyIdleTimeout               time.Duration
+	containerGracefulExitTimeout time.Duration
+	containerCreateTimeout       time.Duration
 )
 
 var agentCmd = &cobra.Command{
@@ -30,6 +35,14 @@ func init() {
 	agentCmd.Flags().StringVar(&dockerAddress, "dockerAddress", "/var/run/docker.sock", "docker socket path")
 	agentCmd.Flags().StringVar(&attachTargetContainerID, "cid", "", "which container attach to")
 
+	var ttyIdleTimeoutMinute, containerCreateTimeoutSecond, containerGracefulExitTimeoutSecond int
+	agentCmd.Flags().IntVar(&ttyIdleTimeoutMinute, "ttyTimeout", 1, "tty connect idle timeout in minute")
+	agentCmd.Flags().IntVar(&containerCreateTimeoutSecond, "containerCreateTimeout", 15, "container create timeout in second")
+	agentCmd.Flags().IntVar(&containerGracefulExitTimeoutSecond, "containerExitTimeout", 15, "container exit timeout in second")
+
+	ttyIdleTimeout = time.Duration(ttyIdleTimeoutMinute) * time.Minute
+	containerCreateTimeout = time.Duration(containerCreateTimeoutSecond) * time.Second
+	containerGracefulExitTimeout = time.Duration(containerGracefulExitTimeoutSecond) * time.Second
 }
 
 func runAgent(cmd *cobra.Command, args []string) error {
@@ -38,13 +51,17 @@ func runAgent(cmd *cobra.Command, args []string) error {
 	signal.Notify(stop, os.Interrupt)
 
 	log.Println("load config success:", listenAddress, dockerAddress, attachTargetContainerID)
-	docker.InitDockerclientConn(dockerAddress)
-	config := agent.HTTPConfig{
-		ListenAddress: listenAddress,
+
+	runtimeConfig := docker.RuntimeConfig{
+		DockerEndpoint:        dockerAddress,
+		StreamIdleTimeout:     ttyIdleTimeout,
+		StreamCreationTimeout: containerCreateTimeout,
+		GracefulExitTimeout:   containerGracefulExitTimeout,
 	}
+	docker.InitDockerclientConn(runtimeConfig)
 
 	// start an HttpServer
-	agentServer := agent.NewHTTPAgentServer(&config, attachTargetContainerID)
+	agentServer := agent.NewHTTPAgentServer(listenAddress, runtimeConfig, attachTargetContainerID)
 	agentServer.Serve(stop)
 
 	return nil

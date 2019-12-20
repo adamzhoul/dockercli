@@ -2,8 +2,10 @@ package docker
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
@@ -12,11 +14,16 @@ import (
 
 func CreateContainer(image string, targetId string) (*container.ContainerCreateCreatedBody, error) {
 
+	if !strings.HasPrefix(targetId, dockerContainerPrefix) {
+		return nil, errors.New("only docker container is suppored right now")
+	}
+
+	dockerContainerId := targetId[len(dockerContainerPrefix):]
 	hostConfig := &container.HostConfig{
-		NetworkMode: container.NetworkMode(fmt.Sprintf("container:%s", targetId)),
-		UsernsMode:  container.UsernsMode(fmt.Sprintf("container:%s", targetId)),
-		IpcMode:     container.IpcMode(fmt.Sprintf("container:%s", targetId)),
-		PidMode:     container.PidMode(fmt.Sprintf("container:%s", targetId)),
+		NetworkMode: container.NetworkMode(fmt.Sprintf("container:%s", dockerContainerId)),
+		UsernsMode:  container.UsernsMode(fmt.Sprintf("container:%s", dockerContainerId)),
+		IpcMode:     container.IpcMode(fmt.Sprintf("container:%s", dockerContainerId)),
+		PidMode:     container.PidMode(fmt.Sprintf("container:%s", dockerContainerId)),
 		CapAdd:      strslice.StrSlice([]string{"SYS_PTRACE", "SYS_ADMIN"}),
 	}
 

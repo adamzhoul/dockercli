@@ -2,20 +2,35 @@ package docker
 
 import (
 	"fmt"
-	dockerclient "github.com/docker/docker/client"
 	"log"
+	"time"
+
+	dockerclient "github.com/docker/docker/client"
 )
 
+const (
+	dockerContainerPrefix = "docker://"
+)
+
+type RuntimeConfig struct {
+	DockerEndpoint        string
+	GracefulExitTimeout   time.Duration
+	StreamIdleTimeout     time.Duration
+	StreamCreationTimeout time.Duration
+}
+
+var runtimeConfig RuntimeConfig
 var client *dockerclient.Client
 
 // init connection to docker.sock
-func InitDockerclientConn(dockerAddress string) {
-	c, err := dockerclient.NewClient(fmt.Sprintf("unix://%s", dockerAddress), "", nil, nil)
+func InitDockerclientConn(config RuntimeConfig) {
+	c, err := dockerclient.NewClient(fmt.Sprintf("unix://%s", config.DockerEndpoint), "", nil, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	client = c
+	runtimeConfig = config
 }
 
 func CloseConn() {

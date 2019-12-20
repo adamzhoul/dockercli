@@ -3,7 +3,6 @@ package agent
 import (
 	"log"
 	"net/http"
-	"time"
 
 	"github.com/adamzhoul/dockercli/pkg/docker"
 
@@ -14,24 +13,21 @@ import (
 // handle attach spdy connection and attach to container
 // 1. start sidecar container, share namespaces
 // 2. attach to sidecar container
-func handleDebug(w http.ResponseWriter, req *http.Request) {
+func (s *HTTPAgentServer) handleDebug(w http.ResponseWriter, req *http.Request) {
 
 	log.Println("handle debug")
-	//debugContainerID := req.FormValue("debugContainerID")
+	debugContainerID := req.FormValue("debugContainerID")
 	attachImage := req.FormValue("attachImage")
 	//debugContainerCmd := req.FormValue("debugContainerCmd")
 
-	// 1. start sidecar container, with specific image.
-	// If debugTargetContainer is empty
 	var attachTargetContainerID string
 	if testAttachTargetContainerID == "" {
-		//resp, err := docker.CreateContainer(attachImage, debugContainerID)
-		resp, err := docker.CreateContainer(attachImage, "ae48d95cd31f")
-		log.Println("debug container with image ----->", attachImage, resp.ID)
+		resp, err := docker.CreateContainer(attachImage, debugContainerID)
 		if err != nil {
-			log.Println(err)
+			ResponseErr(w, err, 400)
 			return
 		}
+		log.Println("debug container with image ----->", attachImage, resp.ID)
 		err = docker.RunContainer(resp.ID)
 		if err != nil {
 			log.Println(err)
@@ -58,8 +54,8 @@ func handleDebug(w http.ResponseWriter, req *http.Request) {
 		"",
 		attachTargetContainerID,
 		streamOpts,
-		1*time.Minute,
-		15*time.Second,
+		s.RuntimeConfig.StreamIdleTimeout, // idle timeout will lead server send fin package
+		s.RuntimeConfig.StreamCreationTimeout,
 		remoteapi.SupportedStreamingProtocols)
 
 }

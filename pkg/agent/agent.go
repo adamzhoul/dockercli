@@ -5,15 +5,14 @@ import (
 	"log"
 	"net/http"
 	"os"
+
+	"github.com/adamzhoul/dockercli/pkg/docker"
 )
 
-type HTTPConfig struct {
-	ListenAddress string
-}
-
 type HTTPAgentServer struct {
-	server *http.Server
-	config *HTTPConfig // http server run params
+	server        *http.Server
+	ListenAddress string
+	RuntimeConfig docker.RuntimeConfig
 }
 
 // for test purpose
@@ -24,23 +23,25 @@ const (
 	AGENT_LABEL     = "app=microctlagent.mservice"
 )
 
-func NewHTTPAgentServer(config *HTTPConfig, attachTargetContainerID string) *HTTPAgentServer {
+func NewHTTPAgentServer(addr string, runtimeConfig docker.RuntimeConfig, attachTargetContainerID string) *HTTPAgentServer {
 
 	testAttachTargetContainerID = attachTargetContainerID
-	muex := proxyRoute()
-	return &HTTPAgentServer{
+	s := &HTTPAgentServer{
 		server: &http.Server{
-			Addr:    config.ListenAddress,
-			Handler: muex},
-		config: config,
+			Addr: addr,
+		},
+		RuntimeConfig: runtimeConfig,
 	}
+	s.server.Handler = s.proxyRoute()
+
+	return s
 }
 
 // run and stop
 func (s *HTTPAgentServer) Serve(stop chan os.Signal) error {
 
 	go func() {
-		log.Printf(fmt.Sprintf("Http Server started at %s! Welcome aboard! \n", s.config.ListenAddress))
+		log.Printf(fmt.Sprintf("Http Server started at %s! Welcome aboard! \n", s.ListenAddress))
 
 		if err := s.server.ListenAndServe(); err != nil {
 			log.Fatal(err)
@@ -54,24 +55,29 @@ func (s *HTTPAgentServer) Serve(stop chan os.Signal) error {
 	return nil
 }
 
-func proxyRoute() *http.ServeMux {
+func (s *HTTPAgentServer) proxyRoute() *http.ServeMux {
 
 	mux := http.NewServeMux()
 
 	// load welcome page
-	mux.HandleFunc("/", Index)
-	mux.HandleFunc("/healthz", healthz)
+	mux.HandleFunc("/", s.Index)
+	mux.HandleFunc("/healthz", s.healthz)
 
-	mux.HandleFunc("/api/v1/debug", handleDebug)
+	mux.HandleFunc("/api/v1/debug", s.handleDebug)
 
 	return mux
 }
 
 // probe health checks
-func healthz(w http.ResponseWriter, req *http.Request) {
+func (s *HTTPAgentServer) healthz(w http.ResponseWriter, req *http.Request) {
 	w.Write([]byte("I'm OK!"))
 }
 
-func Index(w http.ResponseWriter, req *http.Request) {
+func (s *HTTPAgentServer) Index(w http.ResponseWriter, req *http.Request) {
 	w.Write([]byte("Welcome!"))
+}
+
+func ResponseErr(w http.ResponseWriter, err error, code int) {
+	log.Println(err.Error())
+	http.Error(w, err.Error(), 400)
 }
