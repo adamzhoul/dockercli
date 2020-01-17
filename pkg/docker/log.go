@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"strings"
 
@@ -41,11 +42,37 @@ func (l *ContainerLogAttacher) AttachContainer(name string, uid kubetype.UID, co
 	if er != nil {
 		return er
 	}
+	defer resp.Close()
 
-	_, er = io.Copy(out, resp)
+	
+	er = holdLogConnection(in, out, out, resp)
 	if er != nil {
 		return er
 	}
+	return nil
+}
 
+func holdLogConnection(inputStream io.Reader, outputStream, errorStream io.Writer, resp io.ReadCloser) error {
+
+	receiveStdout := make(chan error)
+	if outputStream != nil || errorStream != nil {
+		go func() {
+			_, er := stdcopy.StdCopy(outputStream, errorStream, resp)
+			receiveStdout <- er
+		}()
+	}
+
+	stdinDone := make(chan struct{})
+	go func() {
+		io.Copy(ioutil.Discard, inputStream)
+		stdinDone <- struct{}{}
+	}()
+
+	select {
+	case err := <-receiveStdout:
+		return err
+	case <-stdinDone:
+		log.Println("stdin done")
+	}
 	return nil
 }
