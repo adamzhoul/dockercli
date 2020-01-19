@@ -53,9 +53,11 @@ func (e *ContainerExecAttacher) AttachContainer(name string, uid kubetype.UID, c
 	handleResizing(resize, e.client, respIdExecCreate.ID, resizeExecContainer)
 
 	// attach
-	resp, er := e.client.ContainerExecAttach(context.Background(), respIdExecCreate.ID, types.ExecStartCheck{
+	ctx, cancel := context.WithCancel(context.Background())
+	resp, er := e.client.ContainerExecAttach(ctx, respIdExecCreate.ID, types.ExecStartCheck{
 		Tty: true,
 	})
+	defer cancel() // 关闭/bin/bash进程
 	if er != nil {
 		return er
 	}
