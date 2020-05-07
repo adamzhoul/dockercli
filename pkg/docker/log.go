@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"log"
 	"strings"
+	"github.com/docker/docker/pkg/stdcopy"
 
 	"github.com/docker/docker/api/types"
 	dockerclient "github.com/docker/docker/client"

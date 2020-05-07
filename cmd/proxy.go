@@ -4,7 +4,7 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/adamzhoul/dockercli/pkg/kubernetes"
+	"github.com/adamzhoul/dockercli/registry"
 	"github.com/adamzhoul/dockercli/pkg/proxy"
 	"github.com/spf13/cobra"
 )
@@ -12,8 +12,9 @@ import (
 var (
 	agentAddress       string
 	proxyListenAddress string
-	kubeConfigPath     string
+	registryConfig     string
 	skipKube           bool
+	registry           string   // where we can get pod info
 )
 
 var proxyCmd = &cobra.Command{
@@ -28,7 +29,8 @@ func init() {
 
 	proxyCmd.Flags().StringVar(&agentAddress, "agent", "", "agent ip port")
 	proxyCmd.Flags().StringVar(&proxyListenAddress, "addr", "0.0.0.0:80", "http listener")
-	proxyCmd.Flags().StringVar(&kubeConfigPath, "kubeConfig", "./configs/kube/config", "kube config ")
+	proxyCmd.Flags().StringVar(&registry, "registry", "k8s", "connect to k8s apiserver directly" )
+	proxyCmd.Flags().StringVar(&registryConfig, "registryConfig", "./configs/kube/config", "kube config ")
 	proxyCmd.Flags().BoolVar(&skipKube, "skipKube", false, "skip kube config or not")
 
 }
@@ -53,8 +55,22 @@ func runProxy(cmd *cobra.Command, args []string) error {
 
 func initConfig() {
 
-	if !skipKube {
-		kubernetes.InitClientgo(kubeConfigPath)
-	}
+	// if !skipKube {
+	// 	kubernetes.InitClientgo(kubeConfigPath)
+	// }
 
+	// 1. load config from file
+
+	// 2. rewrite params  
+
+	// 3. init registry
+	initRegistryClient()
+}
+
+func initRegistryClient(){
+	
+	err := registry.InitClient(registry, registryConfig)
+	if err != nil {
+
+	}
 }

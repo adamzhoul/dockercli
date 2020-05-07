@@ -75,10 +75,10 @@ func proxyRoute() *mux.Router {
 
 	// api
 	route.HandleFunc("/api/v1/logs", handleLog)
-	route.HandleFunc("/api/v1/debug/ns/{namespace}/pod/{podName}/container/{containerName}/image/{image}", handleDebug)
-	route.HandleFunc("/api/v1/debug/ns/{namespace}/pod/{podName}/container/{containerName}", handleDebug)
-	route.HandleFunc("/api/v1/exec/ns/{namespace}/pod/{podName}/container/{containerName}", handleExec)
-	route.HandleFunc("/api/v1/log/ns/{namespace}/pod/{podName}/container/{containerName}", handleLog)
+	route.HandleFunc("/api/v1/debug/cluster/{cluster}/ns/{namespace}/pod/{podName}/container/{containerName}/image/{image}", handleDebug)
+	route.HandleFunc("/api/v1/debug/cluster/{cluster}/ns/{namespace}/pod/{podName}/container/{containerName}", handleDebug)
+	route.HandleFunc("/api/v1/exec/cluster/{cluster}/ns/{namespace}/pod/{podName}/container/{containerName}", handleExec)
+	route.HandleFunc("/api/v1/log/cluster/{cluster}/ns/{namespace}/pod/{podName}/container/{containerName}", handleLog)
 	route.HandleFunc("/healthz", healthz)
 
 	return route
