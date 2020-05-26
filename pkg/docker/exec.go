@@ -36,7 +36,7 @@ func (e *ContainerExecAttacher) AttachContainer(name string, uid kubetype.UID, c
 	log.Println("exec attach:", dockerContainerId)
 
 	// execCreate
-	respIdExecCreate, er := e.client.ContainerExecCreate(context.Background(), container,
+	respIdExecCreate, er := e.client.ContainerExecCreate(context.Background(), dockerContainerId,
 		types.ExecConfig{
 			//	User:         "1000",
 			Tty:          true,
@@ -64,7 +64,7 @@ func (e *ContainerExecAttacher) AttachContainer(name string, uid kubetype.UID, c
 	defer resp.Close()
 
 	// hold hijack
-	er = holdHijackedConnection(true, os.Stdin, os.Stdout, os.Stderr, resp)
+	er = holdHijackedConnection(true, in, out, out, resp)
 	if er != nil {
 		return er
 	}

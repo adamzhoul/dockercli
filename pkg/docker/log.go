@@ -11,6 +11,7 @@ import (
 
 	"github.com/docker/docker/api/types"
 	dockerclient "github.com/docker/docker/client"
+	"github.com/docker/docker/pkg/stdcopy"
 	kubetype "k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/tools/remotecommand"
 )

@@ -22,7 +22,7 @@ func (s *HTTPAgentServer) handleLog(w http.ResponseWriter, req *http.Request) {
 	kubeletremote.ServeAttach(
 		w,
 		req,
-		GetAttacher(),
+		GetLogAttacher(),
 		"",
 		"",
 		debugContainerID,

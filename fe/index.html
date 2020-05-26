@@ -1,51 +1,16 @@
-<!-- <!doctype html> -->
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-    <link rel="stylesheet" href="/static/xterm.css" />
-    <script src="/static/xterm.js"></script>
-    <script src="/static/addons/fit/fit.js"></script>
-    <script src="/static/terminal.js"></script>
-    <!-- <script src="static/dist/addons/fullscreen/fullscreen.js"></script> -->
-    <!-- <script src="static/dist/addons/fullscreen/fullscreen.css"></script> -->
-	<meta http-equiv="Content-Type" content="text/html;charset=utf-8">
-	<style>
-		h1 {
- 		   text-align: center;
-		}
-	    #terminal .terminal.xterm {
-			height: 100%;
-	    }
-	    #terminal .xterm-viewport {
-			height: 100%;
-	    }
-		#terminal {
-			height: 100%;
-			width: 100%;
-			padding: 0%;
-			padding-bottom: 5%;
-			margin: 0%;
-	    }
-	</style>
+    <link rel="stylesheet" href="/static/xterm/xterm.css"/>
+    <script src="/static/xterm/xterm.js"></script>
+    <script src="/static/xterm/xterm-addon-fit.min.js"></script>
+
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+    <title>Terminal</title>
 </head>
 
-<body style="border-width: 0;margin: 0">
-	<div id="terminal"></div>
-<script>
-	
-	// url = "ws://"+document.location.host+"/api/v1/attach"
-	// console.log(url);
-	// conn = new WebSocket(url);
-
-	window.onload = function () {
-
-		Terminal.applyAddon(fit);
-		
-	// 
-		// Terminal.applyAddon(fullscreen);
-		connect();
-	};
-	// window.onresize = function(){
-	// 	conn.send(JSON.stringify({operation:"resize",cols: window.innerWidth,rows: window.innerHeight}))
-	// }
-</script>
+<body style="margin: 0;background: black">
+<div id="terminal"></div>
+<script src="/static/terminal.js"></script>
 </body>
+</html>
