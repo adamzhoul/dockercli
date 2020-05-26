@@ -27,7 +27,7 @@ func (s *HTTPAgentServer) handleLog(w http.ResponseWriter, req *http.Request) {
 		"",
 		debugContainerID,
 		streamOpts,
-		s.RuntimeConfig.StreamIdleTimeout, // idle timeout will lead server send fin package
+		s.RuntimeConfig.StreamIdleTimeout, // idle timeout will lead server send fin package 
 		s.RuntimeConfig.StreamCreationTimeout,
 		remoteapi.SupportedStreamingProtocols)
 }
