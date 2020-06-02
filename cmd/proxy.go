@@ -4,8 +4,8 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/adamzhoul/dockercli/registry"
 	"github.com/adamzhoul/dockercli/pkg/proxy"
+	"github.com/adamzhoul/dockercli/registry"
 	"github.com/spf13/cobra"
 )
 
@@ -14,7 +14,7 @@ var (
 	proxyListenAddress string
 	registryConfig     string
 	skipKube           bool
-	registry           string   // where we can get pod info
+	registryType       string // where we can get pod info
 )
 
 var proxyCmd = &cobra.Command{
@@ -29,7 +29,7 @@ func init() {
 
 	proxyCmd.Flags().StringVar(&agentAddress, "agent", "", "agent ip port")
 	proxyCmd.Flags().StringVar(&proxyListenAddress, "addr", "0.0.0.0:80", "http listener")
-	proxyCmd.Flags().StringVar(&registry, "registry", "k8s", "connect to k8s apiserver directly" )
+	proxyCmd.Flags().StringVar(&registryType, "registry", "k8s", "connect to k8s apiserver directly")
 	proxyCmd.Flags().StringVar(&registryConfig, "registryConfig", "./configs/kube/config", "kube config ")
 	proxyCmd.Flags().BoolVar(&skipKube, "skipKube", false, "skip kube config or not")
 
@@ -61,15 +61,15 @@ func initConfig() {
 
 	// 1. load config from file
 
-	// 2. rewrite params  
+	// 2. rewrite params
 
 	// 3. init registry
 	initRegistryClient()
 }
 
-func initRegistryClient(){
-	
-	err := registry.InitClient(registry, registryConfig)
+func initRegistryClient() {
+
+	err := registry.InitClient(registryType, registryConfig)
 	if err != nil {
 
 	}
