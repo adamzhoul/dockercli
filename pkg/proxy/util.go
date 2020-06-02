@@ -10,6 +10,7 @@ import (
 	"github.com/adamzhoul/dockercli/pkg/agent"
 	"github.com/adamzhoul/dockercli/pkg/kubernetes"
 	"github.com/adamzhoul/dockercli/pkg/webterminal"
+	"github.com/adamzhoul/dockercli/registry"
 	"github.com/gorilla/mux"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/remotecommand"
@@ -18,6 +19,7 @@ import (
 func proxy2Agent(w http.ResponseWriter, req *http.Request, apiPath string) {
 
 	pathParams := mux.Vars(req)
+	cluster := pathParams["cluster"]
 	namespace := pathParams["namespace"]
 	podName := pathParams["podName"]
 	containerName := pathParams["containerName"]
@@ -37,7 +39,7 @@ func proxy2Agent(w http.ResponseWriter, req *http.Request, apiPath string) {
 
 	// 2. supply conn params
 	var containerImage, containerID, hostIP string
-	containerImage, containerID, hostIP, err = findPodContainerInfo(namespace, podName, containerName)
+	containerImage, containerID, hostIP, err = registry.Client.FindPodContainerInfo(cluster, namespace, podName, containerName)
 	if err != nil {
 		pty.Done()
 		ResponseErr(w, err)
@@ -86,41 +88,6 @@ func proxy2Agent(w http.ResponseWriter, req *http.Request, apiPath string) {
 	}
 }
 
-// get pod container info
-// include: containerImage containerID HostIP
-func findPodContainerInfo(namespace string, podName string, containerName string) (string, string, string, error) {
-
-	var image, containerID string
-
-	// 1. find pod
-	pod := kubernetes.FindPodByName(namespace, podName)
-	if pod == nil {
-		return "", "", "", errors.New("pod not found")
-	}
-
-	// 2. find container image
-	for _, container := range pod.Spec.Containers {
-		if container.Name == containerName {
-			image = container.Image
-			break
-		}
-	}
-
-	// 3. find container ID
-	for _, containerStatus := range pod.Status.ContainerStatuses {
-		if containerStatus.Name == containerName {
-			containerID = containerStatus.ContainerID
-			break
-		}
-	}
-
-	if image == "" || containerID == "" {
-		return image, containerID, pod.Status.HostIP, errors.New("pod info error ")
-	}
-
-	return image, containerID, pod.Status.HostIP, nil
-
-}
 
 func getAgentAddress(hostIP string) (string, error) {
 
