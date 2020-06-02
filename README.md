@@ -1,6 +1,6 @@
 # Background
 
-Docker CLI or kubectl both are great tools. But:
+Docker CLI or kubectl are both great tools. But:
 
 	1. they are designed for admin, not the developer. 
 	2. developers know less about docker or k8s.
