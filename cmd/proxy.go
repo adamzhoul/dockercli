@@ -18,7 +18,7 @@ var (
 
 var proxyCmd = &cobra.Command{
 	Use:           "proxy",
-	Short:         "agent is a command line tool which connect to docker",
+	Short:         "proxy is a command line tool which connect to docker",
 	SilenceUsage:  true,
 	SilenceErrors: true,
 	RunE:          runProxy,

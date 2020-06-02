@@ -6,7 +6,8 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"os"
+
+	//"os"
 	"strings"
 
 	"github.com/docker/docker/api/types"
