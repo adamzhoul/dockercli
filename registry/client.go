@@ -5,13 +5,14 @@ import (
 )
 
 type registryClient interface {
-	Init(config string) error
+	Init(config string, agentNamespace string, agentLabel string) error
 	FindPodContainerInfo(cluster string, namespace string, podName string, containerName string) (string, string, string, error)
+	FindAgentIp(cluster string, hostIP string) (string, error)
 }
 
 var Client registryClient
 
-func InitClient(registryType string, config string) error {
+func InitClient(registryType string, config string, agentNamespace string, agentLabel string) error {
 
 	if registryType == "local" { // use inner k8s client implmentation, .kube/config file is required.
 		Client = &k8sClient{}
@@ -21,5 +22,5 @@ func InitClient(registryType string, config string) error {
 		return errors.New("type not found")
 	}
 
-	return Client.Init(config)
+	return Client.Init(config, agentNamespace, agentLabel)
 }

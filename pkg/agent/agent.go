@@ -19,8 +19,8 @@ type HTTPAgentServer struct {
 var testAttachTargetContainerID string
 
 const (
-	AGENT_NAMESPACE = "mservice"
-	AGENT_LABEL     = "app=microctlagent.mservice"
+	AGENT_NAMESPACE = "default"
+	AGENT_LABEL     = "component=dockercli.agent"
 )
 
 func NewHTTPAgentServer(addr string, runtimeConfig docker.RuntimeConfig, attachTargetContainerID string) *HTTPAgentServer {

@@ -12,11 +12,13 @@ import (
 )
 
 type k8sClient struct {
-	client *kubernetes.Clientset
+	client         *kubernetes.Clientset
+	agentNamespace string
+	agentLabel     string
 	registryClient
 }
 
-func (kc *k8sClient) Init(config string) error {
+func (kc *k8sClient) Init(config string, agentNamespace string, agentLabel string) error {
 	log.Println("load kube config :", config)
 	conf, err := clientcmd.BuildConfigFromFlags("", config)
 	if err != nil {
@@ -27,6 +29,8 @@ func (kc *k8sClient) Init(config string) error {
 	if err != nil {
 		return err
 	}
+	kc.agentNamespace = agentNamespace
+	kc.agentLabel = agentLabel
 
 	return nil
 }
@@ -68,6 +72,18 @@ func (kc k8sClient) FindPodContainerInfo(cluster string, namespace string, podNa
 	}
 
 	return extraceContainerInfoFromPod(pod, containerName)
+}
+
+func (kc k8sClient) FindAgentIp(cluster string, hostIP string) (string, error) {
+	agents := kc.findPodsByLabel(kc.agentNamespace, kc.agentLabel)
+	for _, agent := range agents {
+
+		if agent.Status.HostIP == hostIP {
+			return agent.Status.PodIP, nil
+		}
+	}
+
+	return "", errors.New("agent not found")
 }
 
 func extraceContainerInfoFromPod(pod *v1.Pod, containerName string) (string, string, string, error) {
