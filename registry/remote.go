@@ -13,11 +13,11 @@ type remoteClient struct {
 	addr string
 }
 
-type ContainerInfo struct {
-	Image       string `json:"image"`
-	ContainerID string `json:"container_id"`
-	HostIp      string `json:"host_ip"`
-}
+// type ContainerInfo struct {
+// 	Image       string `json:"image"`
+// 	ContainerID string `json:"container_id"`
+// 	HostIp      string `json:"host_ip"`
+// }
 
 const POD_INFO_URL = "%s/api/v1/cluster/%s/namespace/%s/podname/%s"
 
@@ -37,7 +37,7 @@ func (r remoteClient) Init(config string) error {
 // include: containerImage containerID HostIP
 func (r remoteClient) FindPodContainerInfo(cluster string, namespace string, podName string, containerName string) (string, string, string, error) {
 
-	url := fmt.Sprintf(POD_INFO_URL, r.addr, cluster, namespace, podName, containerName)
+	url := fmt.Sprintf(POD_INFO_URL, r.addr, cluster, namespace, podName)
 	res, err := common.HttpGet(url, nil)
 	if err != nil {
 		return "", "", "", err
