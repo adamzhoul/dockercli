@@ -1,6 +1,8 @@
 package registry
 
-import "errors"
+import (
+	"errors"
+)
 
 type registryClient interface {
 	Init(config string) error

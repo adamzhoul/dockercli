@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 
 	"github.com/adamzhoul/dockercli/common"
 	v1 "k8s.io/api/core/v1"
@@ -19,9 +20,9 @@ type remoteClient struct {
 // 	HostIp      string `json:"host_ip"`
 // }
 
-const POD_INFO_URL = "%s/api/v1/cluster/%s/namespace/%s/podname/%s"
+const POD_INFO_URL = "http://%s/api/v1/cluster/%s/namespace/%s/podname/%s"
 
-func (r remoteClient) Init(config string) error {
+func (r *remoteClient) Init(config string) error {
 
 	if config == "" {
 		return errors.New("config empty")
@@ -30,6 +31,8 @@ func (r remoteClient) Init(config string) error {
 	// todo: check format; ip + addr
 
 	r.addr = config
+	log.Println("set remote registry addr:", r.addr, config)
+
 	return nil
 }
 

@@ -15,17 +15,20 @@ type HttpResponse struct {
 
 func HttpGet(url string, header map[string]string) (HttpResponse, error) {
 	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return HttpResponse{}, err
+	}
 	for k, v := range header {
 		req.Header.Add(k, v)
 	}
 
-	client := &http.Client{}
-	resp, err := client.Do(req)
+	c := &http.Client{}
+	resp, err := c.Do(req)
 	if err != nil {
 		return HttpResponse{}, err
 	}
 	defer resp.Body.Close()
-	log.Println("GET", resp.StatusCode, url)
+	log.Println("HTTP GET", resp.StatusCode, url)
 
 	var r HttpResponse
 	body, err := ioutil.ReadAll(resp.Body)

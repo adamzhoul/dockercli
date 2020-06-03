@@ -69,7 +69,7 @@ func proxyRoute() *mux.Router {
 
 	// load html static file
 	route.HandleFunc("/", IndexHtml)
-	route.HandleFunc("/{action}/ns/{namespace}/pod/{podName}/container/{containerName}", IndexHtml)
+	route.HandleFunc("/{action}/cluster/{cluster}/ns/{namespace}/pod/{podName}/container/{containerName}", IndexHtml)
 	route.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./fe/static/"))))
 	//route.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./fe/static/"))))
 
