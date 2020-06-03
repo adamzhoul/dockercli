@@ -15,6 +15,9 @@ type HttpResponse struct {
 
 func HttpGet(url string, header map[string]string) (HttpResponse, error) {
 	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return HttpResponse{}, err
+	}
 	for k, v := range header {
 		req.Header.Add(k, v)
 	}
