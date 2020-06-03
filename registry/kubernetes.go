@@ -60,7 +60,6 @@ func (kc k8sClient) findPodsByLabel(namespace string, labelSelector string) []v1
 // get pod container info
 // include: containerImage containerID HostIP
 func (kc k8sClient) FindPodContainerInfo(cluster string, namespace string, podName string, containerName string) (string, string, string, error) {
-	var image, containerID string
 
 	// 1. find pod
 	pod := kc.findPodByName(namespace, podName)
@@ -68,7 +67,14 @@ func (kc k8sClient) FindPodContainerInfo(cluster string, namespace string, podNa
 		return "", "", "", errors.New("pod not found")
 	}
 
-	// 2. find container image
+	return extraceContainerInfoFromPod(pod, containerName)
+}
+
+func extraceContainerInfoFromPod(pod *v1.Pod, containerName string) (string, string, string, error) {
+
+	var image, containerID string
+
+	// 1. find container image
 	for _, container := range pod.Spec.Containers {
 		if container.Name == containerName {
 			image = container.Image
@@ -76,7 +82,7 @@ func (kc k8sClient) FindPodContainerInfo(cluster string, namespace string, podNa
 		}
 	}
 
-	// 3. find container ID
+	// 2. find container ID
 	for _, containerStatus := range pod.Status.ContainerStatuses {
 		if containerStatus.Name == containerName {
 			containerID = containerStatus.ContainerID

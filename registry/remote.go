@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/adamzhoul/dockercli/common"
+	v1 "k8s.io/api/core/v1"
 )
 
 type remoteClient struct {
@@ -18,7 +19,7 @@ type ContainerInfo struct {
 	HostIp      string `json:"host_ip"`
 }
 
-const CONTAINER_INFO_URL = "%s/api/cluster/%s/namespace/%s/podname/%s/containername/%s"
+const POD_INFO_URL = "%s/api/v1/cluster/%s/namespace/%s/podname/%s"
 
 func (r remoteClient) Init(config string) error {
 
@@ -36,17 +37,17 @@ func (r remoteClient) Init(config string) error {
 // include: containerImage containerID HostIP
 func (r remoteClient) FindPodContainerInfo(cluster string, namespace string, podName string, containerName string) (string, string, string, error) {
 
-	url := fmt.Sprintf(CONTAINER_INFO_URL, r.addr, cluster, namespace, podName, containerName)
+	url := fmt.Sprintf(POD_INFO_URL, r.addr, cluster, namespace, podName, containerName)
 	res, err := common.HttpGet(url, nil)
 	if err != nil {
 		return "", "", "", err
 	}
 
-	var c ContainerInfo
-	err = json.Unmarshal([]byte(res.Data), &c)
+	var p v1.Pod
+	err = json.Unmarshal([]byte(res.Data), &p)
 	if err != nil {
 		return "", "", "", err
 	}
 
-	return c.Image, c.ContainerID, c.HostIp, nil
+	return extraceContainerInfoFromPod(&p, containerName)
 }

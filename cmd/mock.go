@@ -6,9 +6,9 @@ import (
 	"net/http"
 
 	"github.com/adamzhoul/dockercli/common"
-	"github.com/adamzhoul/dockercli/registry"
 	"github.com/gorilla/mux"
 	"github.com/spf13/cobra"
+	v1 "k8s.io/api/core/v1"
 )
 
 // mock registry client, response specific podinfo etc...
@@ -16,9 +16,10 @@ import (
 var (
 	mockAddr string
 
-	containerID string
-	image       string
-	hostIp      string
+	containerName string
+	containerID   string
+	image         string
+	hostIp        string
 )
 
 var mockCmd = &cobra.Command{
@@ -33,7 +34,8 @@ func init() {
 
 	mockCmd.Flags().StringVar(&mockAddr, "addr", "0.0.0.0:8083", "http listen addr")
 
-	mockCmd.Flags().StringVar(&containerID, "cid", "1", "containerID")
+	mockCmd.Flags().StringVar(&containerName, "name", "application", "containerName")
+	mockCmd.Flags().StringVar(&containerID, "id", "1", "containerID")
 	mockCmd.Flags().StringVar(&image, "img", "2", "imageID")
 	mockCmd.Flags().StringVar(&hostIp, "ip", "127.0.0.1", "physical machine IP")
 
@@ -45,7 +47,7 @@ func route() *mux.Router {
 	route := mux.NewRouter()
 
 	route.HandleFunc("/", Index)
-	route.HandleFunc("/api/cluster/{cluster}/ns/{namespace}/podname/{podname}/containername/{containername}", podInfo)
+	route.HandleFunc("/api/v1/cluster/{cluster}/ns/{namespace}/podname/{podname}", podInfo)
 	route.HandleFunc("/healthz", Index)
 
 	return route
@@ -72,12 +74,25 @@ func Index(w http.ResponseWriter, req *http.Request) {
 
 func podInfo(w http.ResponseWriter, req *http.Request) {
 
-	i := registry.ContainerInfo{
-		Image:       image,
-		ContainerID: containerID,
-		HostIp:      hostIp,
+	p := v1.Pod{
+		Spec: v1.PodSpec{
+			Containers: []v1.Container{
+				{
+					Name:  containerName,
+					Image: image,
+				},
+			},
+		},
+		Status: v1.PodStatus{
+			ContainerStatuses: []v1.ContainerStatus{
+				{
+					Name:        containerName,
+					ContainerID: containerID,
+				},
+			},
+		},
 	}
-	d, _ := json.Marshal(i)
+	d, _ := json.Marshal(p)
 
 	r := common.HttpResponse{
 		Code: 0,
