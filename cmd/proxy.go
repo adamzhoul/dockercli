@@ -31,6 +31,7 @@ func init() {
 	proxyCmd.Flags().StringVar(&registryConfig, "registryConfig", "./configs/kube/config", "kube config ")
 
 }
+
 func proxyInit() {
 	initRegistryClient()
 }
