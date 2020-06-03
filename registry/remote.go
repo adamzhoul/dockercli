@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 
 	"github.com/adamzhoul/dockercli/common"
 	v1 "k8s.io/api/core/v1"
@@ -31,8 +30,7 @@ func (r *remoteClient) Init(config string) error {
 	// todo: check format; ip + addr
 
 	r.addr = config
-	log.Println("set remote registry addr:", r.addr, config)
-
+	fmt.Println("set remote addr", r.addr)
 	return nil
 }
 

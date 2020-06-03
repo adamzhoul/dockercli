@@ -71,7 +71,6 @@ func proxyRoute() *mux.Router {
 	route.HandleFunc("/", IndexHtml)
 	route.HandleFunc("/{action}/cluster/{cluster}/ns/{namespace}/pod/{podName}/container/{containerName}", IndexHtml)
 	route.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./fe/static/"))))
-	//route.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./fe/static/"))))
 
 	// api
 	route.HandleFunc("/api/v1/logs", handleLog)
