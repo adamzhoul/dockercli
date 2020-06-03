@@ -24,3 +24,11 @@ func Exec() {
 		os.Exit(1)
 	}
 }
+
+func ExtendCommand() *cobra.Command {
+	rootCmd.AddCommand(agentCmd)
+	rootCmd.AddCommand(proxyCmd)
+	rootCmd.AddCommand(mockCmd)
+
+	return rootCmd
+}
