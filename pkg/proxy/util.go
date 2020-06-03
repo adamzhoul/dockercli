@@ -45,18 +45,13 @@ func proxy2Agent(w http.ResponseWriter, req *http.Request, apiPath string) {
 		ResponseErr(w, err)
 		return
 	}
-	var podAgentAddress string
-	if testAgentAddress == "" {
 
-		podAgentAddress, err = getAgentAddress(hostIP)
-		log.Printf("find pod %s agent address %s", podName, podAgentAddress)
-		if err != nil {
-			pty.Done()
-			ResponseErr(w, err)
-			return
-		}
-	} else {
-		podAgentAddress = testAgentAddress
+	podAgentAddress, err := getAgentAddress(hostIP)
+	log.Printf("find pod %s agent address %s", podName, podAgentAddress)
+	if err != nil {
+		pty.Done()
+		ResponseErr(w, err)
+		return
 	}
 
 	// 3. connect use spdy protocol, link websocket conn and spdy conn
@@ -87,7 +82,6 @@ func proxy2Agent(w http.ResponseWriter, req *http.Request, apiPath string) {
 		log.Println("stream err:", err)
 	}
 }
-
 
 func getAgentAddress(hostIP string) (string, error) {
 

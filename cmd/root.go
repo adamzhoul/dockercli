@@ -17,6 +17,7 @@ var rootCmd = &cobra.Command{
 func Exec() {
 	rootCmd.AddCommand(agentCmd)
 	rootCmd.AddCommand(proxyCmd)
+	rootCmd.AddCommand(mockCmd)
 
 	if err := rootCmd.Execute(); err != nil {
 		log.Println(err)

@@ -1,8 +1,8 @@
 package registry
 
 import (
-	"log"
 	"errors"
+	"log"
 
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
@@ -11,26 +11,27 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-type k8sClient struct{
+type k8sClient struct {
 	client *kubernetes.Clientset
-	registryClient 
+	registryClient
 }
 
-func (kc *k8sClient)Init(config string){
+func (kc *k8sClient) Init(config string) error {
 	log.Println("load kube config :", config)
 	conf, err := clientcmd.BuildConfigFromFlags("", config)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	kc.client, err = kubernetes.NewForConfig(conf)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
+
+	return nil
 }
 
-
-func (kc k8sClient)findPodByName(namespace string, podName string) *v1.Pod {
+func (kc k8sClient) findPodByName(namespace string, podName string) *v1.Pod {
 
 	if kc.client == nil {
 		log.Println("k8sclient is nil")
@@ -46,7 +47,7 @@ func (kc k8sClient)findPodByName(namespace string, podName string) *v1.Pod {
 	return pod
 }
 
-func (kc k8sClient)findPodsByLabel(namespace string, labelSelector string) []v1.Pod {
+func (kc k8sClient) findPodsByLabel(namespace string, labelSelector string) []v1.Pod {
 
 	pods, err := kc.client.CoreV1().Pods(namespace).List(metav1.ListOptions{LabelSelector: labelSelector})
 	if err != nil {
@@ -58,7 +59,7 @@ func (kc k8sClient)findPodsByLabel(namespace string, labelSelector string) []v1.
 
 // get pod container info
 // include: containerImage containerID HostIP
-func (kc k8sClient)FindPodContainerInfo(cluster string, namespace string, podName string, containerName string) (string, string, string, error) {
+func (kc k8sClient) FindPodContainerInfo(cluster string, namespace string, podName string, containerName string) (string, string, string, error) {
 	var image, containerID string
 
 	// 1. find pod
@@ -88,5 +89,4 @@ func (kc k8sClient)FindPodContainerInfo(cluster string, namespace string, podNam
 	}
 
 	return image, containerID, pod.Status.HostIP, nil
-
 }

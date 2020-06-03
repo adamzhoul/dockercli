@@ -8,11 +8,11 @@ import (
 	"io/ioutil"
 	"log"
 	"strings"
+
 	"github.com/docker/docker/pkg/stdcopy"
 
 	"github.com/docker/docker/api/types"
 	dockerclient "github.com/docker/docker/client"
-	"github.com/docker/docker/pkg/stdcopy"
 	kubetype "k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/tools/remotecommand"
 )
@@ -46,7 +46,6 @@ func (l *ContainerLogAttacher) AttachContainer(name string, uid kubetype.UID, co
 	}
 	defer resp.Close()
 
-	
 	er = holdLogConnection(in, out, out, resp)
 	if er != nil {
 		return er
