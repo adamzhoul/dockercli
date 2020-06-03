@@ -1,4 +1,4 @@
-FROM registry.vipkid.com.cn/base_env/build_ratel_golang:v1.13.5 as go-builder
+FROM golang:1.13 as go-builder
 WORKDIR /code
 COPY go.mod go.sum /code/
 RUN go version \
