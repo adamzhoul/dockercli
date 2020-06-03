@@ -25,7 +25,7 @@ func Exec() {
 	}
 }
 
-func ExtendCommand() *cobra.Command {
+func ExportCommand() *cobra.Command {
 	rootCmd.AddCommand(agentCmd)
 	rootCmd.AddCommand(proxyCmd)
 	rootCmd.AddCommand(mockCmd)
