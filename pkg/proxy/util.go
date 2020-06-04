@@ -48,7 +48,6 @@ func proxy2Agent(w http.ResponseWriter, req *http.Request, apiPath string) {
 
 	//podAgentAddress, err := getAgentAddress(hostIP)
 	fmt.Println("get hostIP", hostIP)
-	//podAgentAddress := "10.245.72.92:18080"
 	podAgentAddress, err := registry.Client.FindAgentIp(cluster, hostIP)
 	log.Printf("find pod %s agent address %s", podName, podAgentAddress)
 	if err != nil {
