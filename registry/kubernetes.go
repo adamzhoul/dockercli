@@ -84,7 +84,7 @@ func (kc k8sClient) FindAgentIp(cluster string, hostIP string) (string, error) {
 	return "", errors.New("agent not found")
 }
 
-func (kc k8sClient) FindAgentPort() int {
+func (kc k8sClient) FindAgentPort() string {
 	return kc.agent.Port
 }
 

@@ -57,7 +57,7 @@ func proxy2Agent(w http.ResponseWriter, req *http.Request, apiPath string) {
 	}
 
 	// 3. connect use spdy protocol, link websocket conn and spdy conn
-	uri, _ := url.Parse(fmt.Sprintf("http://%s:%d", podAgentAddress, registry.Client.FindAgentPort()))
+	uri, _ := url.Parse(fmt.Sprintf("http://%s:%s", podAgentAddress, registry.Client.FindAgentPort()))
 	uri.Path = apiPath
 	params := url.Values{}
 	params.Add("attachImage", containerImage)

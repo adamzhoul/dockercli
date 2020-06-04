@@ -8,14 +8,14 @@ type registryClient interface {
 	Init(config string, agent *AgentConfig) error
 	FindPodContainerInfo(cluster string, namespace string, podName string, containerName string) (string, string, string, error)
 	FindAgentIp(cluster string, hostIP string) (string, error)
-	FindAgentPort() int
+	FindAgentPort() string
 }
 
 type AgentConfig struct {
 	Namespace string
 	Label     string
 	Ip        string
-	Port      int
+	Port      string
 }
 
 var Client registryClient

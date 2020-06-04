@@ -87,6 +87,6 @@ func (r remoteClient) FindAgentIp(cluster string, hostIP string) (string, error)
 	return "", errors.New("agent not found")
 }
 
-func (r remoteClient) FindAgentPort() int {
+func (r remoteClient) FindAgentPort() string {
 	return r.agent.Port
 }

@@ -4,7 +4,6 @@ import (
 	"log"
 	"os"
 	"os/signal"
-	"strconv"
 
 	"github.com/adamzhoul/dockercli/pkg/agent"
 	"github.com/adamzhoul/dockercli/pkg/proxy"
@@ -34,13 +33,11 @@ func init() {
 	proxyCmd.Flags().StringVar(&registryType, "registry", "local", "connect to k8s apiserver directly")
 	proxyCmd.Flags().StringVar(&registryConfig, "registryConfig", "./configs/kube/config", "kube config ")
 
-	var port string
 	proxyCmd.Flags().StringVar(&agentC.Namespace, "agn", agent.AGENT_NAMESPACE, "agent namespace")
 	proxyCmd.Flags().StringVar(&agentC.Label, "agl", agent.AGENT_LABEL, "agent label")
-	proxyCmd.Flags().StringVar(&port, "agp", "18080", "agent port")
+	proxyCmd.Flags().StringVar(&agentC.Port, "agp", "18080", "agent port")
 	proxyCmd.Flags().StringVar(&agentC.Ip, "agip", "", "agent port")
 
-	agentC.Port, _ = strconv.Atoi(port)
 }
 
 func proxyInit() {
