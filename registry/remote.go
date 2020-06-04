@@ -11,9 +11,8 @@ import (
 )
 
 type remoteClient struct {
-	addr           string
-	agentNamespace string
-	agentLabel     string
+	addr  string
+	agent *AgentConfig
 }
 
 // type ContainerInfo struct {
@@ -23,9 +22,9 @@ type remoteClient struct {
 // }
 
 const POD_INFO_URL = "http://%s/api/v1/cluster/%s/namespace/%s/podname/%s"
-const POD_INFO_LIST = "http://%s/api/v1/cluster/%s/namespace/%s"
+const POD_INFO_LIST = "http://%s/api/v2/cluster/%s/namespace/%s"
 
-func (r *remoteClient) Init(config string, agentNamespace string, agentLabel string) error {
+func (r *remoteClient) Init(config string, agent *AgentConfig) error {
 
 	if config == "" {
 		return errors.New("config empty")
@@ -34,8 +33,7 @@ func (r *remoteClient) Init(config string, agentNamespace string, agentLabel str
 	// todo: check format; ip + addr
 
 	r.addr = config
-	r.agentNamespace = agentNamespace
-	r.agentLabel = agentLabel
+	r.agent = agent
 	fmt.Println("set remote addr", r.addr)
 	return nil
 }
@@ -60,9 +58,14 @@ func (r remoteClient) FindPodContainerInfo(cluster string, namespace string, pod
 }
 
 func (r remoteClient) FindAgentIp(cluster string, hostIP string) (string, error) {
-	podUrl, _ := url.Parse(fmt.Sprintf(POD_INFO_LIST, r.addr, cluster, r.agentNamespace))
+
+	if r.agent.Ip != "" {
+		return r.agent.Ip, nil
+	}
+
+	podUrl, _ := url.Parse(fmt.Sprintf(POD_INFO_LIST, r.addr, cluster, r.agent.Namespace))
 	q, _ := url.ParseQuery(podUrl.RawQuery)
-	q.Set("labelSelector", r.agentLabel)
+	q.Set("labelSelector", r.agent.Label)
 	podUrl.RawQuery = q.Encode()
 
 	res, err := common.HttpGet(podUrl.String(), nil)
@@ -82,4 +85,8 @@ func (r remoteClient) FindAgentIp(cluster string, hostIP string) (string, error)
 		}
 	}
 	return "", errors.New("agent not found")
+}
+
+func (r remoteClient) FindAgentPort() int {
+	return r.agent.Port
 }

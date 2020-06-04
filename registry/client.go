@@ -5,14 +5,22 @@ import (
 )
 
 type registryClient interface {
-	Init(config string, agentNamespace string, agentLabel string) error
+	Init(config string, agent *AgentConfig) error
 	FindPodContainerInfo(cluster string, namespace string, podName string, containerName string) (string, string, string, error)
 	FindAgentIp(cluster string, hostIP string) (string, error)
+	FindAgentPort() int
+}
+
+type AgentConfig struct {
+	Namespace string
+	Label     string
+	Ip        string
+	Port      int
 }
 
 var Client registryClient
 
-func InitClient(registryType string, config string, agentNamespace string, agentLabel string) error {
+func InitClient(registryType string, config string, agent *AgentConfig) error {
 
 	if registryType == "local" { // use inner k8s client implmentation, .kube/config file is required.
 		Client = &k8sClient{}
@@ -22,5 +30,5 @@ func InitClient(registryType string, config string, agentNamespace string, agent
 		return errors.New("type not found")
 	}
 
-	return Client.Init(config, agentNamespace, agentLabel)
+	return Client.Init(config, agent)
 }
