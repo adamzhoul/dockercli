@@ -5,7 +5,6 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/adamzhoul/dockercli/common"
 	"github.com/gorilla/mux"
 	"github.com/spf13/cobra"
 	v1 "k8s.io/api/core/v1"
@@ -92,12 +91,19 @@ func podInfo(w http.ResponseWriter, req *http.Request) {
 			},
 		},
 	}
-	d, _ := json.Marshal(p)
+	//d, _ := json.Marshal(p)
+	type httpResponse struct {
+		Code    int  `json:"code"`
+		Success bool `json:"success"`
 
-	r := common.HttpResponse{
-		Code: 0,
-		Msg:  "",
-		Data: string(d),
+		Message string `json:"msg"`
+		Data    v1.Pod `json:"data"`
+	}
+	r := httpResponse{
+		Code:    0,
+		Success: true,
+		Message: "",
+		Data:    p,
 	}
 	resp, _ := json.Marshal(r)
 

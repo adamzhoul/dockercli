@@ -94,6 +94,7 @@ func extraceContainerInfoFromPod(pod *v1.Pod, containerName string) (string, str
 
 	// 1. find container image
 	for _, container := range pod.Spec.Containers {
+
 		if container.Name == containerName {
 			image = container.Image
 			break
