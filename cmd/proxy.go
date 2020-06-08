@@ -38,7 +38,7 @@ func init() {
 
 	proxyCmd.Flags().StringVar(&agentC.Namespace, "agn", agent.AGENT_NAMESPACE, "agent namespace")
 	proxyCmd.Flags().StringVar(&agentC.Label, "agl", agent.AGENT_LABEL, "agent label")
-	proxyCmd.Flags().StringVar(&agentC.Port, "agp", "18080", "agent port")
+	proxyCmd.Flags().StringVar(&agentC.Port, "agp", "80", "agent port")
 	proxyCmd.Flags().StringVar(&agentC.Ip, "agip", "", "agent port")
 
 }
