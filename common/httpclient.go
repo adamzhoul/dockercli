@@ -1,10 +1,23 @@
 package common
 
 import (
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/url"
 )
+
+var (
+	httpProxy *http.Transport
+)
+
+func InitHttpProxy(address string) {
+	proxy, _ := url.Parse(fmt.Sprintf("http://%s", address))
+	httpProxy = &http.Transport{
+		Proxy: http.ProxyURL(proxy),
+	}
+}
 
 func HttpGet(url string, header map[string]string) ([]byte, error) {
 	req, err := http.NewRequest("GET", url, nil)
@@ -16,6 +29,9 @@ func HttpGet(url string, header map[string]string) ([]byte, error) {
 	}
 
 	c := &http.Client{}
+	if httpProxy != nil {
+		c.Transport = httpProxy
+	}
 	resp, err := c.Do(req)
 	if err != nil {
 		return []byte{}, err
