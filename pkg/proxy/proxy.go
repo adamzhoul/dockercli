@@ -40,7 +40,7 @@ func extractResourceActionFromUrl(req *http.Request) (resource string, action st
 		cluster = items[3]
 		namespace = items[5]
 		pod = items[7]
-	} else {
+	} else { //  /api/v1/{action}/cluster/{cluster}/ns/{namespace}/pod/{podName}/c....
 		action = items[3]
 		cluster = items[5]
 		namespace = items[7]
