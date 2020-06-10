@@ -36,7 +36,6 @@ func extractResourceActionFromUrl(req *http.Request) (resource string, action st
 	items := strings.Split(rawUrl, "/")
 
 	if !strings.HasPrefix(rawUrl, "/api") { // html page, /{action}/cluster/{cluster}/ns/{namespace}/pod/{podName}/c....
-		fmt.Println(items)
 		action = items[1]
 		cluster = items[3]
 		namespace = items[5]
@@ -79,13 +78,14 @@ func (h *httpHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	if token == nil || err != nil {
 		//http.Redirect(rw, req, fmt.Sprintf("http://www.google.com?redirect=%s", req.URL.RawPath), 302)
 		rw.WriteHeader(http.StatusUnauthorized)
-		rw.Write([]byte("401 HTTP status code returned!"))
+		rw.Write([]byte("401 Unauthorized. Please go login!"))
 		return
 	}
 
 	// check auth before action
 	resource, action := extractResourceActionFromUrl(req)
-	_, pass := auth.CheckUser(token.Value, resource, action)
+	username, pass := auth.CheckUser(token.Value, resource, action)
+	*req = *(req.WithContext(context.WithValue(req.Context(), "username", username)))
 	if !pass {
 		rw.WriteHeader(http.StatusForbidden)
 		rw.Write([]byte("403 HTTP status code returned!"))
