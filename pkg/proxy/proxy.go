@@ -48,7 +48,7 @@ func extractResourceActionFromUrl(req *http.Request) (resource string, action st
 	}
 
 	arr := strings.Split(pod, "-")
-	pod = strings.Join(arr[:len(arr)-2], "-")
+	pod = strings.Join(arr[:len(arr)-2], "-") // there are many problems here, todo: fix me
 
 	resource = fmt.Sprintf("/%s/%s/%s", cluster, namespace, pod)
 	return
