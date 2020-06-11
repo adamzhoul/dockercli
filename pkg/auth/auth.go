@@ -4,6 +4,10 @@ import (
 	"strings"
 )
 
+func InitAuth(address string) {
+	authApi = address
+}
+
 // return username, passOrNot
 func CheckUser(token string, resource string, action string) (string, bool) {
 

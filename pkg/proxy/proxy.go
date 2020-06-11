@@ -74,7 +74,7 @@ func (h *httpHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	// get userinfo before action
-	token, err := req.Cookie("token")
+	token, err := req.Cookie("ssoToken")
 	if token == nil || err != nil {
 		//http.Redirect(rw, req, fmt.Sprintf("http://www.google.com?redirect=%s", req.URL.RawPath), 302)
 		rw.WriteHeader(http.StatusUnauthorized)

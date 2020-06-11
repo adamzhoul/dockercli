@@ -7,6 +7,7 @@ import (
 
 	"github.com/adamzhoul/dockercli/common"
 	"github.com/adamzhoul/dockercli/pkg/agent"
+	"github.com/adamzhoul/dockercli/pkg/auth"
 	"github.com/adamzhoul/dockercli/pkg/proxy"
 	"github.com/adamzhoul/dockercli/registry"
 	"github.com/spf13/cobra"
@@ -17,6 +18,8 @@ var (
 	registryConfig     string
 	registryType       string // where we can get pod info
 	sidecar            string
+
+	authApi string // where we can verify userToken and get privilege
 
 	agentC registry.AgentConfig
 )
@@ -35,6 +38,7 @@ func init() {
 	proxyCmd.Flags().StringVar(&registryType, "registry", "local", "connect to k8s apiserver directly")
 	proxyCmd.Flags().StringVar(&registryConfig, "registryConfig", "./configs/kube/config", "kube config ")
 	proxyCmd.Flags().StringVar(&sidecar, "sidecar", "", "sidecar proxy supported")
+	proxyCmd.Flags().StringVar(&authApi, "auth", "", "where we can verify userToken and get privilege")
 
 	proxyCmd.Flags().StringVar(&agentC.Namespace, "agn", agent.AGENT_NAMESPACE, "agent namespace")
 	proxyCmd.Flags().StringVar(&agentC.Label, "agl", agent.AGENT_LABEL, "agent label")
@@ -44,7 +48,11 @@ func init() {
 }
 
 func proxyInit() {
-	initRegistryClient()
+
+	err := registry.InitClient(registryType, registryConfig, &agentC)
+	if err != nil {
+		log.Fatal(err)
+	}
 	common.InitHttpProxy(sidecar)
 }
 
@@ -52,22 +60,15 @@ func runProxy(cmd *cobra.Command, args []string) error {
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt)
 
+	auth.InitAuth(authApi)
+
+	// start an HttpServer
 	proxyInit()
 	proxyConfig := proxy.HTTPConfig{
 		ListenAddress: proxyListenAddress,
 	}
-
-	// start an HttpServer
 	proxy := proxy.NewHTTPProxyServer(&proxyConfig)
 	proxy.Serve(stop)
 
 	return nil
-}
-
-func initRegistryClient() {
-
-	err := registry.InitClient(registryType, registryConfig, &agentC)
-	if err != nil {
-		log.Fatal(err)
-	}
 }

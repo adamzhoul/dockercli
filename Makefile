@@ -10,4 +10,4 @@ agent:
 	./debugctl agent
 	
 proxy:
-	./debugctl proxy --addr 0.0.0.0:18080 --agn ratel --agl "app=webide-agent" --registry remote --registryConfig vk-shark.ccp --sidecar 127.0.0.1:8083
+	./debugctl proxy --addr 0.0.0.0:18080 --agn ratel --agl "app=webide-agent" --registry remote --registryConfig vk-shark.ccp --sidecar 127.0.0.1:8083 
