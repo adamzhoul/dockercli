@@ -10,7 +10,8 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o microctl .
 FROM alpine
 RUN apk add --no-cache tzdata
 ENV TZ=Asia/Shanghai
+COPY fe  /app/fe/
 COPY --from=go-builder /code/microctl /app/
-COPY --from=go-builder /code/configs /app/
+COPY --from=go-builder /code/configs /app/configs/
 WORKDIR /app
 ENTRYPOINT ["/app/microctl"]
