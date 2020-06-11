@@ -91,6 +91,7 @@ func (h *httpHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		rw.Write([]byte("403 HTTP status code returned!"))
 		return
 	}
+	log.Println("req:", req.URL.Path, username)
 
 	h.r.ServeHTTP(rw, req)
 }

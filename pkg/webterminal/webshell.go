@@ -55,6 +55,7 @@ type TerminalSession struct {
 	wsConn   *websocket.Conn
 	sizeChan chan remotecommand.TerminalSize
 	doneChan chan struct{}
+	user     string
 }
 
 // NewTerminalSession create TerminalSession
@@ -63,10 +64,17 @@ func NewTerminalSession(w http.ResponseWriter, r *http.Request, responseHeader h
 	if err != nil {
 		return nil, err
 	}
+	username := r.Context().Value("username")
+	if username == nil {
+		username = "unknown"
+	}
+	log.Println("terminal session for user", username)
+
 	session := &TerminalSession{
 		wsConn:   conn,
 		sizeChan: make(chan remotecommand.TerminalSize),
 		doneChan: make(chan struct{}),
+		user:     username.(string),
 	}
 	return session, nil
 }

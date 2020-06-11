@@ -37,6 +37,7 @@ func getAuth(token string, resource string) (username string, actions string) {
 	authApiUrl.RawQuery = q.Encode()
 
 	// request auth server
+	log.Println("request for auth:", authApi)
 	client := http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
@@ -78,6 +79,7 @@ func getAuth(token string, resource string) (username string, actions string) {
 	if _, ok := authinfo.Data["actions"]; ok {
 		actions = authinfo.Data["actions"]
 	}
+	log.Println("get auth info :", token, resource, username, actions)
 
 	return
 }
