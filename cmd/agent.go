@@ -36,7 +36,7 @@ func init() {
 	agentCmd.Flags().StringVar(&attachTargetContainerID, "cid", "", "which container attach to")
 
 	var ttyIdleTimeoutMinute, containerCreateTimeoutSecond, containerGracefulExitTimeoutSecond int
-	agentCmd.Flags().IntVar(&ttyIdleTimeoutMinute, "ttyTimeout", 15, "tty connect idle timeout in minute")
+	agentCmd.Flags().IntVar(&ttyIdleTimeoutMinute, "ttyTimeout", 30, "tty connect idle timeout in minute")
 	agentCmd.Flags().IntVar(&containerCreateTimeoutSecond, "containerCreateTimeout", 15, "container create timeout in second")
 	agentCmd.Flags().IntVar(&containerGracefulExitTimeoutSecond, "containerExitTimeout", 15, "container exit timeout in second")
 
@@ -50,7 +50,6 @@ func runAgent(cmd *cobra.Command, args []string) error {
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt)
 
-	log.Println("load config success:", listenAddress, dockerAddress, attachTargetContainerID)
 
 	runtimeConfig := docker.RuntimeConfig{
 		DockerEndpoint:        dockerAddress,
@@ -58,6 +57,7 @@ func runAgent(cmd *cobra.Command, args []string) error {
 		StreamCreationTimeout: containerCreateTimeout,
 		GracefulExitTimeout:   containerGracefulExitTimeout,
 	}
+	log.Println("load config success:", listenAddress, dockerAddress, attachTargetContainerID, runtimeConfig)
 	docker.InitDockerclientConn(runtimeConfig)
 
 	// start an HttpServer

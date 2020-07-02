@@ -56,6 +56,7 @@ type TerminalSession struct {
 	sizeChan chan remotecommand.TerminalSize
 	doneChan chan struct{}
 	user     string
+	doneFlag bool
 }
 
 // NewTerminalSession create TerminalSession
@@ -75,12 +76,15 @@ func NewTerminalSession(w http.ResponseWriter, r *http.Request, responseHeader h
 		sizeChan: make(chan remotecommand.TerminalSize),
 		doneChan: make(chan struct{}),
 		user:     username.(string),
+		doneFlag: false,
 	}
+	go session.keepAlive()
 	return session, nil
 }
 
 // Done done
 func (t *TerminalSession) Done() chan struct{} {
+	t.doneFlag = true
 	return t.doneChan
 }
 
@@ -137,7 +141,31 @@ func (t *TerminalSession) Write(p []byte) (int, error) {
 	return len(p), nil
 }
 
+// write data to downstream every 15s
+// otherwise , proxy like nginx may send fin to close connection
+func (t *TerminalSession) keepAlive() {
+
+	ticker := time.NewTicker(time.Duration(50) * time.Second)
+	for {
+		select {
+		case <-t.doneChan:
+			log.Println(" get from doneChan, stop keep alive")
+			return
+		case <-ticker.C:
+			// if closed break
+			if t.doneFlag {
+				log.Println("get from doneFlag, stop keep alive")
+				return
+			}
+			t.wsConn.WriteMessage(websocket.TextMessage, []byte("h"))
+			continue
+		}
+	}
+}
+
+
 // Close close session
 func (t *TerminalSession) Close() error {
+	t.doneFlag = true
 	return t.wsConn.Close()
 }

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"net/url"
 
 	"github.com/adamzhoul/dockercli/common"
@@ -58,9 +59,11 @@ func (r remoteClient) FindPodContainerInfo(cluster string, namespace string, pod
 	var response httpResponse
 	err = json.Unmarshal(res, &response)
 	if err != nil {
+		log.Println(err)
 		return "", "", "", err
 	}
 	if !response.Success {
+		log.Println(response.Message)
 		return "", "", "", errors.New(response.Message)
 	}
 

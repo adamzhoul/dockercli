@@ -2,11 +2,11 @@ package agent
 
 import (
 	"fmt"
+	util "github.com/adamzhoul/dockercli/pkg"
+	"github.com/adamzhoul/dockercli/pkg/docker"
 	"log"
 	"net/http"
 	"os"
-
-	"github.com/adamzhoul/dockercli/pkg/docker"
 )
 
 type HTTPAgentServer struct {
@@ -82,4 +82,16 @@ func (s *HTTPAgentServer) Index(w http.ResponseWriter, req *http.Request) {
 func ResponseErr(w http.ResponseWriter, err error, code int) {
 	log.Println(err.Error())
 	http.Error(w, err.Error(), code)
+}
+
+func auth(req *http.Request) bool{
+
+	username, password, ok := req.BasicAuth()
+	if !ok{
+		return false
+	}
+	log.Println("request user:", username, password)
+	supposedPassword := util.EncryptionArithmetic(username, "oasdf923n")
+
+	return supposedPassword == password
 }

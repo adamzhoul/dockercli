@@ -46,7 +46,7 @@ func route() *mux.Router {
 	route := mux.NewRouter()
 
 	route.HandleFunc("/", Index)
-	route.HandleFunc("/api/v1/cluster/{cluster}/ns/{namespace}/podname/{podname}", podInfo)
+	route.HandleFunc("/api/v1/namespaces/{namespace}/pods/{podname}", podInfo)
 	route.HandleFunc("/healthz", Index)
 
 	return route
@@ -68,7 +68,7 @@ func runMock(cmd *cobra.Command, args []string) error {
 }
 
 func Index(w http.ResponseWriter, req *http.Request) {
-	w.Write([]byte("I'm OK!"))
+	w.Write([]byte("I'm OK ~"))
 }
 
 func podInfo(w http.ResponseWriter, req *http.Request) {
@@ -89,6 +89,7 @@ func podInfo(w http.ResponseWriter, req *http.Request) {
 					ContainerID: containerID,
 				},
 			},
+			HostIP: hostIp,
 		},
 	}
 	//d, _ := json.Marshal(p)

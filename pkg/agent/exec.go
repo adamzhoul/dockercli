@@ -11,6 +11,10 @@ import (
 func (s *HTTPAgentServer) handleExec(w http.ResponseWriter, req *http.Request) {
 
 	debugContainerID := req.FormValue("debugContainerID")
+	if !auth(req){
+		http.Error(w, "Unauthorized", 401)
+		return
+	}
 
 	// 2. attach to container
 	streamOpts := &kubeletremote.Options{
@@ -27,7 +31,7 @@ func (s *HTTPAgentServer) handleExec(w http.ResponseWriter, req *http.Request) {
 		"",
 		debugContainerID,
 		streamOpts,
-		s.RuntimeConfig.StreamIdleTimeout, // idle timeout will lead server send fin package
+		s.RuntimeConfig.StreamIdleTimeout, // idle timeout will lead server send fin package 
 		s.RuntimeConfig.StreamCreationTimeout,
 		remoteapi.SupportedStreamingProtocols)
 }

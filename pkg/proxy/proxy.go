@@ -82,6 +82,11 @@ func (h *httpHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	// invalid path should return directly
+	if req.URL.Path == "/favicon.ico" {
+		return
+	}
+
 	// check auth before action
 	resource, action := extractResourceActionFromUrl(req)
 	username, pass := auth.CheckUser(token.Value, resource, action)

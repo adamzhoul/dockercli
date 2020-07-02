@@ -1,6 +1,7 @@
 package proxy
 
 import (
+
 	"errors"
 	"fmt"
 	"log"
@@ -10,6 +11,7 @@ import (
 	"github.com/adamzhoul/dockercli/pkg/agent"
 	"github.com/adamzhoul/dockercli/pkg/kubernetes"
 	"github.com/adamzhoul/dockercli/pkg/webterminal"
+	util "github.com/adamzhoul/dockercli/pkg"
 	"github.com/adamzhoul/dockercli/registry"
 	"github.com/gorilla/mux"
 	"k8s.io/client-go/rest"
@@ -41,15 +43,16 @@ func proxy2Agent(w http.ResponseWriter, req *http.Request, apiPath string) {
 	var containerImage, containerID, hostIP string
 	containerImage, containerID, hostIP, err = registry.Client.FindPodContainerInfo(cluster, namespace, podName, containerName)
 	if err != nil {
+		log.Println(err)
 		pty.Done()
 		ResponseErr(w, err)
 		return
 	}
 
-	//podAgentAddress, err := getAgentAddress(hostIP)
-	fmt.Println("get hostIP", hostIP)
-	podAgentAddress, err := registry.Client.FindAgentIp(cluster, hostIP)
-	log.Printf("find pod %s agent address %s", podName, podAgentAddress)
+	log.Println("get hostIP", hostIP)
+	//podAgentAddress, err := registry.Client.FindAgentIp(cluster, hostIP)
+	podAgentAddress := hostIP
+	//log.Printf("find pod %s agent address %s", podName, podAgentAddress)
 	if err != nil {
 		pty.Done()
 		ResponseErr(w, err)
@@ -63,8 +66,11 @@ func proxy2Agent(w http.ResponseWriter, req *http.Request, apiPath string) {
 	params.Add("attachImage", containerImage)
 	params.Add("debugContainerID", containerID)
 	uri.RawQuery = params.Encode()
-	log.Println("connect to agent ", uri, params)
-	exec, err := remotecommand.NewSPDYExecutor(&rest.Config{Host: uri.Host}, "POST", uri)
+
+	username := req.Context().Value("username")
+	password := util.EncryptionArithmetic(username.(string), "oasdf923n")
+
+	exec, err := remotecommand.NewSPDYExecutor(&rest.Config{Host: uri.Host, Username: username.(string), Password: password}, "POST", uri)
 	if err != nil {
 		pty.Done()
 		ResponseErr(w, err)
@@ -97,3 +103,4 @@ func getAgentAddress(hostIP string) (string, error) {
 
 	return "", errors.New("agent not found")
 }
+
