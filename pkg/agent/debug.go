@@ -14,6 +14,10 @@ import (
 // 1. start sidecar container, share namespaces
 // 2. attach to sidecar container
 func (s *HTTPAgentServer) handleDebug(w http.ResponseWriter, req *http.Request) {
+	if !auth(req){
+		http.Error(w, "Unauthorized", 401)
+		return
+	}
 
 	log.Println("handle debug")
 	debugContainerID := req.FormValue("debugContainerID")

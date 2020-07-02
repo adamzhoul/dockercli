@@ -10,6 +10,11 @@ import (
 
 func (s *HTTPAgentServer) handleLog(w http.ResponseWriter, req *http.Request) {
 
+	if !auth(req){
+		http.Error(w, "Unauthorized", 401)
+		return
+	}
+
 	debugContainerID := req.FormValue("debugContainerID")
 
 	// 2. attach to container
