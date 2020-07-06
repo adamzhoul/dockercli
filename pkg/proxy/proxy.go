@@ -2,6 +2,7 @@ package proxy
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -58,6 +59,7 @@ func extractResourceActionFromUrl(req *http.Request) (resource string, action st
 func passTokenCheck(req *http.Request) bool {
 
 	if strings.HasPrefix(req.URL.Path, "/static") ||
+		strings.HasPrefix(req.URL.Path, "/admin") ||
 		req.URL.RawPath == "/" || req.URL.RawPath == "/healthz" {
 		return true
 	}
@@ -158,6 +160,7 @@ func proxyRoute() *httpHandler {
 	route.HandleFunc("/api/v1/exec/cluster/{cluster}/ns/{namespace}/pod/{podName}/container/{containerName}", handleExec)
 	route.HandleFunc("/api/v1/log/cluster/{cluster}/ns/{namespace}/pod/{podName}/container/{containerName}", handleLog)
 	route.HandleFunc("/healthz", healthz)
+	route.HandleFunc("/admin/cache/{cache}", cacheInfo)
 
 	return &httpHandler{
 		r: route,
@@ -171,6 +174,22 @@ func healthz(w http.ResponseWriter, req *http.Request) {
 
 func IndexHtml(w http.ResponseWriter, req *http.Request) {
 	http.ServeFile(w, req, "./fe/index.html")
+}
+
+func cacheInfo(w http.ResponseWriter, req *http.Request) {
+
+	pathParams := mux.Vars(req)
+	token := pathParams["cache"]
+	res := auth.Get(token)
+
+	d, err := json.Marshal(res)
+	if err != nil{
+		w.Write([]byte("check err"))
+		return
+	}
+
+	w.Write(d)
+
 }
 
 func ResponseErr(w http.ResponseWriter, err error) {
