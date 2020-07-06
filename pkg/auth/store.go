@@ -49,5 +49,14 @@ func  Get(token string) *authInfo {
 	return storeCache.get(token)
 }
 
+func Set(token string, username string) bool {
+
+	if _, ok := storeCache[token]; !ok {
+		return false
+	}
+	storeCache[token].Username = username
+	return true
+}
+
 
 

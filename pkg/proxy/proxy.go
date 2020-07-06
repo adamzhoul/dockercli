@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/adamzhoul/dockercli/pkg/auth"
+	util "github.com/adamzhoul/dockercli/pkg"
 	"github.com/gorilla/mux"
 )
 
@@ -93,12 +94,16 @@ func (h *httpHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	resource, action := extractResourceActionFromUrl(req)
 	username, pass := auth.CheckUser(token.Value, resource, action)
 	*req = *(req.WithContext(context.WithValue(req.Context(), "username", username)))
-	if !pass {
+	logger := util.ShellLogger{Username: username}
+	*req = *(req.WithContext(context.WithValue(req.Context(), "logger", logger)))
+
+	if !pass || username == ""{
+		logger.Info("username empty")
 		rw.WriteHeader(http.StatusForbidden)
 		rw.Write([]byte("403 HTTP status code returned!"))
 		return
 	}
-	log.Println("req:", req.URL.Path, username)
+	logger.Info("req:", req.URL.Path)
 
 	h.r.ServeHTTP(rw, req)
 }
@@ -161,6 +166,8 @@ func proxyRoute() *httpHandler {
 	route.HandleFunc("/api/v1/log/cluster/{cluster}/ns/{namespace}/pod/{podName}/container/{containerName}", handleLog)
 	route.HandleFunc("/healthz", healthz)
 	route.HandleFunc("/admin/cache/{cache}", cacheInfo)
+	route.HandleFunc("/admin/cache/set/token/{token}/username/{username}", setStoreCache)
+
 
 	return &httpHandler{
 		r: route,
@@ -179,8 +186,8 @@ func IndexHtml(w http.ResponseWriter, req *http.Request) {
 func cacheInfo(w http.ResponseWriter, req *http.Request) {
 
 	pathParams := mux.Vars(req)
-	token := pathParams["cache"]
-	res := auth.Get(token)
+	cacheToken := pathParams["cache"]
+	res := auth.Get(cacheToken)
 
 	d, err := json.Marshal(res)
 	if err != nil{
@@ -189,7 +196,21 @@ func cacheInfo(w http.ResponseWriter, req *http.Request) {
 	}
 
 	w.Write(d)
+}
 
+func setStoreCache(w http.ResponseWriter, req *http.Request) {
+
+	pathParams := mux.Vars(req)
+	cacheToken := pathParams["cache"]
+	username := pathParams["username"]
+	res := auth.Get(cacheToken)
+	if res == nil || res.Username == "" || username == ""{
+		w.Write([]byte("token empty"))
+		return
+	}
+
+	auth.Set(cacheToken, username)
+	w.Write([]byte("done"))
 }
 
 func ResponseErr(w http.ResponseWriter, err error) {

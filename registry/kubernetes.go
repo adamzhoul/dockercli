@@ -110,6 +110,7 @@ func extraceContainerInfoFromPod(pod *v1.Pod, containerName string) (string, str
 	}
 
 	if image == "" || containerID == "" {
+		log.Println("pod info error:", *pod)
 		return image, containerID, pod.Status.HostIP, errors.New("pod info error ")
 	}
 

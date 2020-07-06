@@ -4,7 +4,6 @@ import (
 
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
 	"net/url"
 
@@ -26,7 +25,12 @@ func proxy2Agent(w http.ResponseWriter, req *http.Request, apiPath string) {
 	podName := pathParams["podName"]
 	containerName := pathParams["containerName"]
 	image, _ := pathParams["image"]
-	log.Printf("exec pod: %s, container: %s, namespace: %s, image: %s", podName, containerName, namespace, image)
+	logger,ok := req.Context().Value("logger").(util.ShellLogger)
+	if !ok {
+		ResponseErr(w, errors.New("log error"))
+		return
+	}
+	logger.Info(fmt.Sprintf("exec pod: %s, container: %s, namespace: %s, image: %s", podName, containerName, namespace, image))
 
 	// 1. upgrade conn
 	pty, err := webterminal.NewTerminalSession(w, req, nil)
@@ -35,7 +39,7 @@ func proxy2Agent(w http.ResponseWriter, req *http.Request, apiPath string) {
 		return
 	}
 	defer func() {
-		log.Println("close session.")
+		logger.Info("close session.")
 		pty.Close()
 	}()
 
@@ -43,16 +47,15 @@ func proxy2Agent(w http.ResponseWriter, req *http.Request, apiPath string) {
 	var containerImage, containerID, hostIP string
 	containerImage, containerID, hostIP, err = registry.Client.FindPodContainerInfo(cluster, namespace, podName, containerName)
 	if err != nil {
-		log.Println(err)
+		logger.Info(err.Error())
 		pty.Done()
 		ResponseErr(w, err)
 		return
 	}
 
-	log.Println("get hostIP", hostIP)
+	logger.Info("get hostIP", hostIP)
 	//podAgentAddress, err := registry.Client.FindAgentIp(cluster, hostIP)
 	podAgentAddress := hostIP
-	//log.Printf("find pod %s agent address %s", podName, podAgentAddress)
 	if err != nil {
 		pty.Done()
 		ResponseErr(w, err)
@@ -69,9 +72,11 @@ func proxy2Agent(w http.ResponseWriter, req *http.Request, apiPath string) {
 
 	username := req.Context().Value("username")
 	password := util.EncryptionArithmetic(username.(string), "oasdf923n")
+	logger.Info("request verify:", username.(string), ",", password)
 
 	exec, err := remotecommand.NewSPDYExecutor(&rest.Config{Host: uri.Host, Username: username.(string), Password: password}, "POST", uri)
 	if err != nil {
+		logger.Info(err.Error())
 		pty.Done()
 		ResponseErr(w, err)
 		return
@@ -87,7 +92,7 @@ func proxy2Agent(w http.ResponseWriter, req *http.Request, apiPath string) {
 	if err != nil {
 		pty.Done()
 		pty.Close()
-		log.Println("stream err:", err)
+		logger.Info("stream err:", err.Error())
 	}
 }
 
