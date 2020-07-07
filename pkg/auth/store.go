@@ -1,5 +1,6 @@
 package auth
 
+import "log"
 
 type authStoreCache map[string]*authInfo // token -> user scope
 
@@ -46,6 +47,7 @@ func (s authStoreCache) save(token string, username string, scope map[string]str
 }
 
 func  Get(token string) *authInfo {
+	log.Println("all cache:",storeCache)
 	return storeCache.get(token)
 }
 

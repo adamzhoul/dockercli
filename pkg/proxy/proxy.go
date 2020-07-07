@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/segmentio/ksuid"
 	"log"
 	"net/http"
 	"os"
@@ -94,7 +95,9 @@ func (h *httpHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	resource, action := extractResourceActionFromUrl(req)
 	username, pass := auth.CheckUser(token.Value, resource, action)
 	*req = *(req.WithContext(context.WithValue(req.Context(), "username", username)))
-	logger := util.ShellLogger{Username: username}
+
+	traceID := ksuid.New()
+	logger := util.ShellLogger{Username: username, TraceID: traceID.String()}
 	*req = *(req.WithContext(context.WithValue(req.Context(), "logger", logger)))
 
 	if !pass || username == ""{

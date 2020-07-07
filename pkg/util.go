@@ -38,7 +38,7 @@ func (s ShellLogger) Info(msg ...interface{})  {
 		file = shortFile(file)
 	}
 
-	log.Printf("%s:%d [%s] [%s] %s ", file,line, s.TraceID, s.Username, fmt.Sprintln(msg...))
+	log.Printf("%s:%d [%s] [%s] %s ", file,line, s.TraceID[:12], s.Username, fmt.Sprintln(msg...))
 }
 
 func shortFile(file string) string {
