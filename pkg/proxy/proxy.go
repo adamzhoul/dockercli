@@ -73,6 +73,9 @@ func (h *httpHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 	// pass allowList: /static 、 / 、 /healthz
 	if passTokenCheck(req) {
+		traceID := ksuid.New()
+		logger := util.ShellLogger{Username: "unknown", TraceID: traceID.String()}
+		*req = *(req.WithContext(context.WithValue(req.Context(), "logger", logger)))
 		h.r.ServeHTTP(rw, req)
 		return
 	}
