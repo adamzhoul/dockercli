@@ -50,6 +50,6 @@ WebClient ---> proxy |
 # Thanks
 inspired and copied a lot from projects:
 1. https://github.com/aylei/kubectl-debug
-2. https://github.com/maoqide/kubeutil
+2. https://github.com/maoqide/kubeutil 
 
 
