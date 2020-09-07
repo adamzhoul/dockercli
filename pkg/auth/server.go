@@ -32,6 +32,12 @@ func getAuth(token string, resource string) (username string, actions string) {
 		Value: token,
 	}
 	req.AddCookie(c)
+	c1 := &http.Cookie{
+		Name:  "appToken",
+		Value: token,
+	}
+	req.AddCookie(c1)
+
 	q, _ := url.ParseQuery(authApiUrl.RawQuery)
 	q.Set("resource", resource)
 	authApiUrl.RawQuery = q.Encode()

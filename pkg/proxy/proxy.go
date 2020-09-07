@@ -81,9 +81,13 @@ func (h *httpHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	// get userinfo before action
+	// token key changed, support both for a while.
 	token, err := req.Cookie("ssoToken")
 	if token == nil || err != nil {
-		//http.Redirect(rw, req, fmt.Sprintf("http://www.google.com?redirect=%s", req.URL.RawPath), 302)
+		token, err = req.Cookie("appToken")
+	}
+
+	if token == nil || err != nil {
 		rw.WriteHeader(http.StatusUnauthorized)
 		rw.Write([]byte("401 Unauthorized. Please go login!"))
 		return
