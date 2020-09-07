@@ -82,9 +82,9 @@ func (h *httpHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 	// get userinfo before action
 	// token key changed, support both for a while.
-	token, err := req.Cookie("ssoToken")
+	token, err := req.Cookie("appToken")
 	if token == nil || err != nil {
-		token, err = req.Cookie("appToken")
+		token, err = req.Cookie("ssoToken")
 	}
 
 	if token == nil || err != nil {
