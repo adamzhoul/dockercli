@@ -1,42 +1,49 @@
 package agent
 
 import (
+	"fmt"
 	"net/http"
+	"net/url"
+	"strings"
 
-	"github.com/adamzhoul/dockercli/pkg/docker"
-	remoteapi "k8s.io/apimachinery/pkg/util/remotecommand"
-	kubeletremote "k8s.io/kubernetes/pkg/kubelet/server/remotecommand"
+	"k8s.io/apimachinery/pkg/util/proxy"
+	runtimeapi "k8s.io/cri-api/pkg/apis/runtime/v1alpha2"
+	"k8s.io/klog/v2"
 )
 
-func (s *HTTPAgentServer) handleExec(w http.ResponseWriter, req *http.Request) {
+func (s *HTTPAgentServer) handleCriExec(w http.ResponseWriter, req *http.Request) {
 
 	debugContainerID := req.FormValue("debugContainerID")
-	if !auth(req){
-		http.Error(w, "Unauthorized", 401)
+	debugContainerID = strings.TrimLeft(debugContainerID, "containerd://")
+	fmt.Println("exec into container:", debugContainerID)
+
+	rp, err := s.runtimeService.Exec(&runtimeapi.ExecRequest{
+		Stdin:       true,
+		Stdout:      true,
+		Tty:         true,
+		ContainerId: debugContainerID,
+		Cmd:         []string{"/bin/sh"},
+	})
+	if err != nil {
+		fmt.Println("exec err:", err)
 		return
 	}
 
-	// 2. attach to container
-	streamOpts := &kubeletremote.Options{
-		Stdin:  true,
-		Stdout: true,
-		Stderr: false,
-		TTY:    true,
-	}
-	kubeletremote.ServeAttach(
-		w,
-		req,
-		GetExecAttacher(),
-		"",
-		"",
-		debugContainerID,
-		streamOpts,
-		s.RuntimeConfig.StreamIdleTimeout, // idle timeout will lead server send fin package 
-		s.RuntimeConfig.StreamCreationTimeout,
-		remoteapi.SupportedStreamingProtocols)
+	u, _ := url.Parse(rp.Url)
+
+	proxyStream(w, req, u)
 }
 
-func GetExecAttacher() *docker.ContainerExecAttacher {
+type responder struct{}
 
-	return docker.NewContainerExecAttacher()
+func (r *responder) Error(w http.ResponseWriter, req *http.Request, err error) {
+	klog.ErrorS(err, "Error while proxying request")
+	http.Error(w, err.Error(), http.StatusInternalServerError)
+}
+
+// proxyStream proxies stream to url.
+func proxyStream(w http.ResponseWriter, r *http.Request, url *url.URL) {
+	// TODO(random-liu): Set MaxBytesPerSec to throttle the stream.
+	handler := proxy.NewUpgradeAwareHandler(url, nil /*transport*/, false /*wrapTransport*/, true /*upgradeRequired*/, &responder{})
+	handler.ServeHTTP(w, r)
 }

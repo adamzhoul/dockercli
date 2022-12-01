@@ -40,3 +40,10 @@ func TestSpdy(t *testing.T) {
 		//TerminalSizeQueue: terminalSizeQueue,
 	})
 }
+
+func TestUrl(t *testing.T) {
+	uri, _ := url.Parse(fmt.Sprintf("http://%s:%s", "127.0.0.1", "8080"))
+	uri.Path = "/api/v1/log"
+
+	fmt.Printf("get uri: %+v", uri)
+}

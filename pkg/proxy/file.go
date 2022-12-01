@@ -4,26 +4,22 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/http/httptest"
 	"net/url"
 
 	util "github.com/adamzhoul/dockercli/pkg"
-	"github.com/adamzhoul/dockercli/pkg/agent"
-	"github.com/adamzhoul/dockercli/pkg/kubernetes"
-	"github.com/adamzhoul/dockercli/pkg/webterminal"
 	"github.com/adamzhoul/dockercli/registry"
 	"github.com/gorilla/mux"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/remotecommand"
 )
 
-func proxy2Agent(w http.ResponseWriter, req *http.Request, apiPath string) {
-
+func handleFile(w http.ResponseWriter, req *http.Request) {
 	pathParams := mux.Vars(req)
 	cluster := pathParams["cluster"]
 	namespace := pathParams["namespace"]
 	podName := pathParams["podName"]
 	containerName := pathParams["containerName"]
-	// image, _ := pathParams["image"]
 	logger, ok := req.Context().Value("logger").(util.ShellLogger)
 	if !ok {
 		ResponseErr(w, errors.New("log error"))
@@ -31,42 +27,27 @@ func proxy2Agent(w http.ResponseWriter, req *http.Request, apiPath string) {
 	}
 	logger.Info(fmt.Sprintf("exec pod: %s, container: %s, namespace: %s, image: %s", podName, containerName, namespace, "image"))
 
-	// 1. upgrade conn
-	pty, err := webterminal.NewTerminalSession(w, req, nil)
-	if err != nil {
-		ResponseErr(w, err)
-		return
-	}
-	defer func() {
-		logger.Info("close session.")
-		pty.Close()
-	}()
-
 	// 2. supply conn params
 	var containerImage, containerID, hostIP string
-	containerImage, containerID, hostIP, err = registry.Client.FindPodContainerInfo(cluster, namespace, podName, containerName)
+	containerImage, containerID, hostIP, err := registry.Client.FindPodContainerInfo(cluster, namespace, podName, containerName)
 	if err != nil {
-		logger.Info(err.Error())
-		pty.Done()
 		ResponseErr(w, err)
 		return
 	}
 
-	logger.Info("get hostIP", hostIP)
+	logger.Info("get hostIP", hostIP, containerImage)
 	//podAgentAddress, err := registry.Client.FindAgentIp(cluster, hostIP)
 	podAgentAddress := hostIP
 	if err != nil {
-		pty.Done()
 		ResponseErr(w, err)
 		return
 	}
 
-	// 3. connect use spdy protocol, link websocket conn and spdy conn
 	uri, _ := url.Parse(fmt.Sprintf("http://%s:%s", podAgentAddress, registry.Client.FindAgentPort()))
-	uri.Path = apiPath
+	uri.Path = "/api/v1/file"
 	params := url.Values{}
-	params.Add("attachImage", containerImage)
 	params.Add("debugContainerID", containerID)
+	params.Add("file", req.URL.Query().Get("file"))
 	uri.RawQuery = params.Encode()
 
 	username := req.Context().Value("username")
@@ -76,34 +57,52 @@ func proxy2Agent(w http.ResponseWriter, req *http.Request, apiPath string) {
 	exec, err := remotecommand.NewSPDYExecutor(&rest.Config{Host: uri.Host, Username: username.(string), Password: password}, "POST", uri)
 	if err != nil {
 		logger.Info(err.Error())
-		pty.Done()
 		ResponseErr(w, err)
 		return
 	}
 
-	err = exec.Stream(remotecommand.StreamOptions{
-		Stdin:             pty,
-		Stdout:            pty,
-		Stderr:            pty,
-		Tty:               true,
-		TerminalSizeQueue: pty,
-	})
-	if err != nil { // 这里断开了，会往标准输出写么？？？？
-		pty.Done()
-		pty.Close()
-		logger.Info("stream err:", err.Error())
+	wr := wrpRequest{
+		R: req,
 	}
+	errW := httptest.NewRecorder()
+
+	w.Header().Add("Content-type", "application/x-tar")
+	err = exec.Stream(remotecommand.StreamOptions{
+		Stdin:  wr,
+		Stdout: w,
+		Stderr: errW,
+		Tty:    false,
+	})
+	if err != nil {
+		logger.Info("stream file err:", err)
+	}
+
+	errMsg := []byte{}
+	n, err := errW.Body.Read(errMsg)
+	logger.Info("read stderr ", n, err, string(errMsg))
+
+	// read from w
+	logger.Info("proxy file done")
 }
 
-func getAgentAddress(hostIP string) (string, error) {
+type wrpRequest struct {
+	R *http.Request
+}
 
-	agents := kubernetes.FindPodsByLabel(agent.AGENT_NAMESPACE, agent.AGENT_LABEL)
-	for _, agent := range agents {
+// todo when tar takes time and client go away
+// make stdout, stderr err at same time to exit goroutine in exec.Stream
+/*
+	var wg sync.WaitGroup
+	p.copyStdout(&wg)
+	p.copyStderr(&wg)
+	// we're waiting for stdout/stderr to finish copying
+	wg.Wait()
+*/
+func (wr wrpRequest) Read(p []byte) (int, error) {
+	<-wr.R.Context().Done()
+	fmt.Println("req ctx is done")
 
-		if agent.Status.HostIP == hostIP {
-			return agent.Status.PodIP, nil
-		}
-	}
+	// todo we should close response to exit copy in exec.stream
 
-	return "", errors.New("agent not found")
+	return 0, fmt.Errorf("client finished")
 }

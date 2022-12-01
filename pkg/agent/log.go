@@ -1,43 +1,37 @@
 package agent
 
 import (
+	"fmt"
 	"net/http"
+	"strings"
+	"time"
 
-	"github.com/adamzhoul/dockercli/pkg/docker"
-	remoteapi "k8s.io/apimachinery/pkg/util/remotecommand"
-	kubeletremote "k8s.io/kubernetes/pkg/kubelet/server/remotecommand"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apiserver/pkg/util/flushwriter"
+	"k8s.io/kubernetes/pkg/kubelet/kuberuntime/logs"
 )
 
-func (s *HTTPAgentServer) handleLog(w http.ResponseWriter, req *http.Request) {
+func (s *HTTPAgentServer) handleCriLog(w http.ResponseWriter, req *http.Request) {
 
-	if !auth(req){
-		http.Error(w, "Unauthorized", 401)
+	ctx := req.Context()
+	debugContainerID := req.FormValue("debugContainerID")
+	debugContainerID = strings.TrimLeft(debugContainerID, "containerd://")
+	fmt.Println("log container:", debugContainerID)
+
+	status, err := s.runtimeService.ContainerStatus(debugContainerID)
+	if err != nil {
+		fmt.Println("get container status err:", err)
 		return
 	}
 
-	debugContainerID := req.FormValue("debugContainerID")
+	TailLines := int64(200)
+	opts := logs.NewLogOptions(&corev1.PodLogOptions{
+		Follow:    true,
+		TailLines: &TailLines,
+	}, time.Now())
+	fw := flushwriter.Wrap(w)
+	w.Header().Set("Transfer-Encoding", "chunked")
+	err = logs.ReadLogs(ctx, status.GetLogPath(), debugContainerID, opts, s.runtimeService, fw, fw)
 
-	// 2. attach to container
-	streamOpts := &kubeletremote.Options{
-		Stdin:  true,
-		Stdout: true,
-		Stderr: false,
-		TTY:    true,
-	}
-	kubeletremote.ServeAttach(
-		w,
-		req,
-		GetLogAttacher(),
-		"",
-		"",
-		debugContainerID,
-		streamOpts,
-		s.RuntimeConfig.StreamIdleTimeout, // idle timeout will lead server send fin package 
-		s.RuntimeConfig.StreamCreationTimeout,
-		remoteapi.SupportedStreamingProtocols)
-}
-
-func GetLogAttacher() *docker.ContainerLogAttacher {
-
-	return docker.NewContainerLogAttacher()
+	fmt.Println("read log done ", err)
 }

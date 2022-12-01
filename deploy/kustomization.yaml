@@ -1,0 +1,9 @@
+resources:
+- proxy.yaml
+# - rabc.yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+images:
+- name: proxyImg
+  newName: proxyImg
+  newTag: "20221230143144"

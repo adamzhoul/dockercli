@@ -1,0 +1,20 @@
+# three node (two workers) cluster config
+# 选择k8s版本
+# https://github.com/kubernetes-sigs/kind/releases/tag/v0.12.0
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+nodes:
+- role: control-plane
+  image: kindest/node:v1.22.7@sha256:1dfd72d193bf7da64765fd2f2898f78663b9ba366c2aa74be1fd7498a1873166
+- role: worker
+  image: kindest/node:v1.22.7@sha256:1dfd72d193bf7da64765fd2f2898f78663b9ba366c2aa74be1fd7498a1873166
+  extraPortMappings:
+  - containerPort: 30100
+    hostPort: 31280
+    listenAddress: "0.0.0.0"
+- role: worker
+  image: kindest/node:v1.22.7@sha256:1dfd72d193bf7da64765fd2f2898f78663b9ba366c2aa74be1fd7498a1873166
+  extraPortMappings:
+  - containerPort: 30100
+    hostPort: 31281
+    listenAddress: "0.0.0.0"
