@@ -25,3 +25,21 @@ proxy:
 
 # stopall:
 #     ps aux|grep 'debugctl'|grep -v grep|awk '{print "kill -9 "$2}'|sh
+
+forward: 
+	sudo kubectl port-forward `kubectl get pod -n ops-system |grep ladder|awk '{print $$1}'` -n ops-system 80:8080
+
+
+
+# http://127.0.0.1/exec/cluster/cc/ns/namespace/pod/sky-ladder-prod-748595df85-gvfg4/container/application
+# cd /root && ./ladder agent --listenAddress 0.0.0.0:20077
+TAG := $(shell date +%Y%m%d%H%M%S)
+KIMG := docker.io/xxxx/public/sky-ladder
+quick:
+	GOPROXY=https://goproxy.cn GOOS=linux go build -o ladder main.go
+	docker build -t ${KIMG}:${TAG} -f Dockerfile.kind .
+	docker push ${KIMG}:${TAG} 
+	cd deploy && kustomize edit set image proxyImg=${KIMG}:${TAG}
+	kustomize build deploy | kubectl apply -f -
+	# docker cp ladder test-worker2:/root
+	kubectl get pod -n ops-system |grep sky|grep -v Running

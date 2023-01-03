@@ -17,7 +17,7 @@ func getAuth(token string, resource string) (username string, actions string) {
 	if authApi == "" {
 		log.Println("authApi empty ,skip ")
 		username = "testuser"
-		actions = "exec,log,debug"
+		actions = "exec,log,debug,file"
 		return
 	}
 

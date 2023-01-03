@@ -4,15 +4,16 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/segmentio/ksuid"
 	"log"
 	"net/http"
 	"os"
 	"strings"
 	"time"
 
-	"github.com/adamzhoul/dockercli/pkg/auth"
+	"github.com/segmentio/ksuid"
+
 	util "github.com/adamzhoul/dockercli/pkg"
+	"github.com/adamzhoul/dockercli/pkg/auth"
 	"github.com/gorilla/mux"
 )
 
@@ -37,6 +38,14 @@ func extractResourceActionFromUrl(req *http.Request) (resource string, action st
 	namespace := ""
 	pod := ""
 	items := strings.Split(rawUrl, "/")
+
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println("err extract:", r)
+			resource = "unknown"
+			action = "unknown"
+		}
+	}()
 
 	if !strings.HasPrefix(rawUrl, "/api") { // html page, /{action}/cluster/{cluster}/ns/{namespace}/pod/{podName}/c....
 		action = items[1]
@@ -107,8 +116,8 @@ func (h *httpHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	logger := util.ShellLogger{Username: username, TraceID: traceID.String()}
 	*req = *(req.WithContext(context.WithValue(req.Context(), "logger", logger)))
 
-	if !pass || username == ""{
-		logger.Info("username empty")
+	if !pass || username == "" {
+		logger.Info("username empty", username)
 		rw.WriteHeader(http.StatusForbidden)
 		rw.Write([]byte("403 HTTP status code returned!"))
 		return
@@ -174,10 +183,10 @@ func proxyRoute() *httpHandler {
 	route.HandleFunc("/api/v1/debug/cluster/{cluster}/ns/{namespace}/pod/{podName}/container/{containerName}", handleDebug)
 	route.HandleFunc("/api/v1/exec/cluster/{cluster}/ns/{namespace}/pod/{podName}/container/{containerName}", handleExec)
 	route.HandleFunc("/api/v1/log/cluster/{cluster}/ns/{namespace}/pod/{podName}/container/{containerName}", handleLog)
+	route.HandleFunc("/api/v1/file/cluster/{cluster}/ns/{namespace}/pod/{podName}/container/{containerName}", handleFile)
 	route.HandleFunc("/healthz", healthz)
 	route.HandleFunc("/admin/cache/{cache}", cacheInfo)
 	route.HandleFunc("/admin/cache/set/token/{token}/username/{username}", setStoreCache)
-
 
 	return &httpHandler{
 		r: route,
@@ -200,7 +209,7 @@ func cacheInfo(w http.ResponseWriter, req *http.Request) {
 	res := auth.Get(cacheToken)
 
 	d, err := json.Marshal(res)
-	if err != nil{
+	if err != nil {
 		w.Write([]byte("check err"))
 		return
 	}
@@ -214,7 +223,7 @@ func setStoreCache(w http.ResponseWriter, req *http.Request) {
 	cacheToken := pathParams["cache"]
 	username := pathParams["username"]
 	res := auth.Get(cacheToken)
-	if res == nil || res.Username == "" || username == ""{
+	if res == nil || res.Username == "" || username == "" {
 		w.Write([]byte("token empty"))
 		return
 	}

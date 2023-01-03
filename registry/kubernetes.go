@@ -1,6 +1,7 @@
 package registry
 
 import (
+	"context"
 	"errors"
 	"log"
 
@@ -40,7 +41,7 @@ func (kc k8sClient) findPodByName(namespace string, podName string) *v1.Pod {
 		return nil
 	}
 
-	pod, err := kc.client.CoreV1().Pods(namespace).Get(podName, metav1.GetOptions{})
+	pod, err := kc.client.CoreV1().Pods(namespace).Get(context.Background(), podName, metav1.GetOptions{})
 	if err != nil {
 		log.Println(err)
 		return nil
@@ -51,7 +52,7 @@ func (kc k8sClient) findPodByName(namespace string, podName string) *v1.Pod {
 
 func (kc k8sClient) findPodsByLabel(namespace string, labelSelector string) []v1.Pod {
 
-	pods, err := kc.client.CoreV1().Pods(namespace).List(metav1.ListOptions{LabelSelector: labelSelector})
+	pods, err := kc.client.CoreV1().Pods(namespace).List(context.Background(), metav1.ListOptions{LabelSelector: labelSelector})
 	if err != nil {
 		return nil
 	}

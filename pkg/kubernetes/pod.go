@@ -1,6 +1,7 @@
 package kubernetes
 
 import (
+	"context"
 	"log"
 
 	v1 "k8s.io/api/core/v1"
@@ -14,7 +15,7 @@ func FindPodByName(namespace string, podName string) *v1.Pod {
 		return nil
 	}
 
-	pod, err := k8sClient.CoreV1().Pods(namespace).Get(podName, metav1.GetOptions{})
+	pod, err := k8sClient.CoreV1().Pods(namespace).Get(context.Background(), podName, metav1.GetOptions{})
 	if err != nil {
 		log.Println(err)
 		return nil
@@ -25,7 +26,7 @@ func FindPodByName(namespace string, podName string) *v1.Pod {
 
 func FindPodsByLabel(namespace string, labelSelector string) []v1.Pod {
 
-	pods, err := k8sClient.CoreV1().Pods(namespace).List(metav1.ListOptions{LabelSelector: labelSelector})
+	pods, err := k8sClient.CoreV1().Pods(namespace).List(context.Background(), metav1.ListOptions{LabelSelector: labelSelector})
 	if err != nil {
 		return nil
 	}
