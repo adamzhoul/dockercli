@@ -14,7 +14,7 @@ require (
 	github.com/segmentio/ksuid v1.0.3
 	github.com/spf13/cobra v1.6.0
 	github.com/stretchr/testify v1.8.0 // indirect
-	golang.org/x/net v0.3.1-0.20221206200815-1e63c2f08a10 // indirect
+	golang.org/x/net v0.7.0 // indirect
 	golang.org/x/oauth2 v0.0.0-20220223155221-ee480838109b // indirect
 	golang.org/x/time v0.3.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
